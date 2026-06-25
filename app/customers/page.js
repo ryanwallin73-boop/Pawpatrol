@@ -44,7 +44,7 @@ export default async function CustomersPage() {
                   {c.first_name} {c.last_name}
                 </h3>
                 <span className="text-sm text-gray-500">
-                  {c.neighborhoods?.name ?? "No neighborhood"} · {c.city}, {c.state}
+                  {c.neighborhoods?.name ?? "No neighborhood"}
                   <Link
                     href={`/customers/${c.id}/edit`}
                     className="ml-3 font-medium text-[#2C7A7B] hover:underline"
