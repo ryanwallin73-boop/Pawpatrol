@@ -38,6 +38,8 @@ export default function CustomerForm({ variant = "public", submitUrl }) {
   });
   const [consent, setConsent] = useState(false);
   const [authNote, setAuthNote] = useState("");
+  const [hp, setHp] = useState(""); // honeypot — must stay empty
+  const [startedAt] = useState(() => Date.now());
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -91,6 +93,9 @@ export default function CustomerForm({ variant = "public", submitUrl }) {
     if (isStaff) {
       payload.authorized = true;
       payload.authNote = authNote;
+    } else {
+      payload.hp = hp;
+      payload.elapsedMs = Date.now() - startedAt;
     }
 
     const res = await fetch(submitUrl, {
@@ -153,6 +158,25 @@ export default function CustomerForm({ variant = "public", submitUrl }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {!isStaff ? (
+        <div
+          aria-hidden="true"
+          style={{ position: "absolute", left: "-9999px", top: "auto", height: 0, overflow: "hidden" }}
+        >
+          <label>
+            Company
+            <input
+              type="text"
+              name="company"
+              tabIndex={-1}
+              autoComplete="off"
+              value={hp}
+              onChange={(e) => setHp(e.target.value)}
+            />
+          </label>
+        </div>
+      ) : null}
+
       <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">
           {isStaff ? "Customer details" : "Your details"}
