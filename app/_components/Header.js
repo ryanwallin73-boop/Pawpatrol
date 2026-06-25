@@ -21,8 +21,10 @@ const navLinks = [
 export default function Header() {
   const pathname = usePathname();
 
-  // No nav on the login screen (the only page a signed-out user can reach).
-  if (pathname?.startsWith("/login")) return null;
+  // No staff nav on the public, customer-facing pages.
+  if (pathname?.startsWith("/login") || pathname?.startsWith("/signup")) {
+    return null;
+  }
 
   return (
     <header className="border-b-2 border-[#B85C38] bg-white">
