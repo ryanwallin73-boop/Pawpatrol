@@ -1,65 +1,70 @@
+import Link from "next/link";
 import Image from "next/image";
+import hero from "@/pawpatroldogpic.png";
+
+const screens = [
+  {
+    href: "/customers",
+    title: "Customers",
+    blurb: "Households, their dogs, and payment methods on file.",
+    icon: "🐶",
+  },
+  {
+    href: "/schedules",
+    title: "Schedules",
+    blurb: "Recurring standing schedules, bookings, and vacation days.",
+    icon: "🗓️",
+  },
+  {
+    href: "/routing",
+    title: "Van Routing",
+    blurb: "Daily routes per van and neighborhood, with their stops.",
+    icon: "🚐",
+  },
+  {
+    href: "/today",
+    title: "Today's Routes",
+    blurb: "Every stop scheduled for today, ordered by van.",
+    icon: "📍",
+  },
+];
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+    <div className="space-y-10">
+      <section className="relative overflow-hidden rounded-2xl shadow-sm ring-1 ring-black/5">
         <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
+          src={hero}
+          alt="Austin Paw Patrol dogs — where dogs become family"
+          className="h-56 w-full object-cover object-center sm:h-72"
+          placeholder="blur"
           priority
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
+        <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
+        <div className="absolute bottom-0 left-0 p-6 sm:p-8">
+          <h1 className="text-3xl font-bold uppercase tracking-wide text-white drop-shadow sm:text-4xl">
+            Dashboard
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      </section>
+
+      <section className="grid gap-5 sm:grid-cols-2">
+        {screens.map((s) => (
+          <Link
+            key={s.href}
+            href={s.href}
+            className="group flex items-start gap-4 rounded-xl border border-gray-200 border-l-4 border-l-[#B85C38] bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-l-[#2C7A7B] hover:shadow-md"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+            <span className="text-2xl">{s.icon}</span>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 group-hover:text-[#B85C38]">
+                {s.title}
+              </h2>
+              <p className="mt-1 text-sm text-gray-600">{s.blurb}</p>
+            </div>
+          </Link>
+        ))}
+      </section>
     </div>
   );
 }
