@@ -1,16 +1,21 @@
 import { NextResponse } from "next/server";
-import { createCustomerWithAch } from "@/lib/createCustomer";
+import { addAchPaymentMethod } from "@/lib/createCustomer";
 import { ACH_CONSENT_TEXT } from "@/lib/ach";
 
-export async function POST(request) {
-  const { customer, dogs, bank, authorized, authNote } = await request.json();
+// Adds ACH details to an existing customer who was created without them.
+export async function POST(request, { params }) {
+  const { id } = await params;
+  const { bank, authorized, authNote } = await request.json();
 
-  // ACH is optional here — staff can collect bank details later. Consent is
-  // only required when bank info is actually being recorded.
-  const hasBank = Boolean(bank?.routing_number || bank?.account_number);
-  if (hasBank && !authorized) {
+  if (!authorized) {
     return NextResponse.json(
       { error: "Confirm the customer authorized these ACH debits." },
+      { status: 400 }
+    );
+  }
+  if (!bank?.routing_number || !bank?.account_number) {
+    return NextResponse.json(
+      { error: "Bank routing and account numbers are required." },
       { status: 400 }
     );
   }
@@ -21,12 +26,10 @@ export async function POST(request) {
     consentText += ` Authorization received: ${authNote.trim()}.`;
   }
 
-  const result = await createCustomerWithAch({
-    customer,
-    dogs,
+  const result = await addAchPaymentMethod({
+    customerId: id,
     bank,
     consentText,
-    bankRequired: false,
   });
 
   if (result.error) {

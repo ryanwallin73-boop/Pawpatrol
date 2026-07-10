@@ -76,9 +76,26 @@ export default function CustomerForm({ variant = "public", submitUrl }) {
     setDone(false);
   }
 
+  const hasBank = Boolean(
+    bank.bank_name.trim() ||
+      bank.routing_number.trim() ||
+      bank.account_number.trim()
+  );
+
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!consent) {
+    // Staff can leave the ACH section blank entirely and add it later.
+    if (
+      isStaff &&
+      hasBank &&
+      (!bank.routing_number.trim() || !bank.account_number.trim())
+    ) {
+      setError(
+        "Enter both routing and account numbers, or leave the ACH section blank to add it later."
+      );
+      return;
+    }
+    if ((!isStaff || hasBank) && !consent) {
       setError(
         isStaff
           ? "Please confirm the customer authorized these ACH debits."
@@ -119,13 +136,20 @@ export default function CustomerForm({ variant = "public", submitUrl }) {
       return (
         <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
           <p className="font-medium text-emerald-700">Customer added.</p>
-          <p className="mt-1 text-sm text-gray-600">
-            Their bank numbers are waiting in{" "}
-            <Link href="/ach-setups" className="font-medium underline">
-              ACH Setups
-            </Link>{" "}
-            to key into the bank.
-          </p>
+          {hasBank ? (
+            <p className="mt-1 text-sm text-gray-600">
+              Their bank numbers are waiting in{" "}
+              <Link href="/ach-setups" className="font-medium underline">
+                ACH Setups
+              </Link>{" "}
+              to key into the bank.
+            </p>
+          ) : (
+            <p className="mt-1 text-sm text-gray-600">
+              No ACH details yet — you can add them later from the
+              customer&apos;s edit page.
+            </p>
+          )}
           <div className="mt-4 flex gap-4 text-sm">
             <button
               onClick={reset}
@@ -262,13 +286,18 @@ export default function CustomerForm({ variant = "public", submitUrl }) {
       </section>
 
       <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h2 className={`text-sm font-semibold uppercase tracking-wide text-gray-500 ${isStaff ? "mb-1" : "mb-4"}`}>
           ACH payment
         </h2>
+        {isStaff ? (
+          <p className="mb-4 text-sm text-gray-500">
+            Optional — leave blank to collect bank details later.
+          </p>
+        ) : null}
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className={label}>Bank name</label>
-            <input className={field} required value={bank.bank_name} onChange={setB("bank_name")} />
+            <input className={field} required={!isStaff} value={bank.bank_name} onChange={setB("bank_name")} />
           </div>
           <div>
             <label className={label}>Account type</label>
@@ -279,11 +308,11 @@ export default function CustomerForm({ variant = "public", submitUrl }) {
           </div>
           <div>
             <label className={label}>Routing number</label>
-            <input className={field} required inputMode="numeric" value={bank.routing_number} onChange={setB("routing_number")} />
+            <input className={field} required={!isStaff} inputMode="numeric" value={bank.routing_number} onChange={setB("routing_number")} />
           </div>
           <div>
             <label className={label}>Account number</label>
-            <input className={field} required inputMode="numeric" value={bank.account_number} onChange={setB("account_number")} />
+            <input className={field} required={!isStaff} inputMode="numeric" value={bank.account_number} onChange={setB("account_number")} />
           </div>
         </div>
 
