@@ -5,9 +5,9 @@ import {
   Empty,
   ErrorNote,
   Badge,
-  weekdayName,
   NewBookingButton,
 } from "@/app/_components/ui";
+import BookingActions from "./BookingActions";
 
 export const dynamic = "force-dynamic";
 
@@ -17,16 +17,7 @@ const dogOwner = (dog) =>
 export default async function SchedulesPage() {
   const today = new Date().toISOString().slice(0, 10);
 
-  const [recurring, bookings, vacations] = await Promise.all([
-    supabaseAdmin
-      .from("recurring_schedules")
-      .select(
-        `id, weekday, active,
-         dogs ( name, customers ( first_name, last_name ) ),
-         services ( name )`
-      )
-      .eq("active", true)
-      .order("weekday", { ascending: true }),
+  const [bookings, vacations] = await Promise.all([
     supabaseAdmin
       .from("bookings")
       .select(
@@ -50,46 +41,19 @@ export default async function SchedulesPage() {
       .order("start_date", { ascending: true }),
   ]);
 
-  const error = recurring.error || bookings.error || vacations.error;
+  const error = bookings.error || vacations.error;
 
   return (
     <div>
       <PageHeader
         title="Schedules"
-        subtitle="Recurring standing schedules, upcoming bookings, and vacation days."
+        subtitle="Upcoming bookings and vacation days."
         action={<NewBookingButton />}
       />
       {error ? (
         <ErrorNote error={error} />
       ) : (
         <div className="space-y-6">
-          <Card title="Recurring schedules">
-            {recurring.data.length === 0 ? (
-              <Empty>No recurring schedules.</Empty>
-            ) : (
-              <table className="w-full text-left text-sm">
-                <thead className="text-xs uppercase tracking-wide text-gray-400">
-                  <tr>
-                    <th className="pb-2">Weekday</th>
-                    <th className="pb-2">Dog</th>
-                    <th className="pb-2">Owner</th>
-                    <th className="pb-2">Service</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {recurring.data.map((r) => (
-                    <tr key={r.id}>
-                      <td className="py-2 font-medium">{weekdayName(r.weekday)}</td>
-                      <td className="py-2">{r.dogs?.name ?? "—"}</td>
-                      <td className="py-2 text-gray-600">{dogOwner(r.dogs)}</td>
-                      <td className="py-2">{r.services?.name ?? "—"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </Card>
-
           <Card title="Upcoming bookings">
             {bookings.data.length === 0 ? (
               <Empty>No upcoming bookings.</Empty>
@@ -103,6 +67,7 @@ export default async function SchedulesPage() {
                     <th className="pb-2">Service</th>
                     <th className="pb-2">Van</th>
                     <th className="pb-2">Status</th>
+                    <th className="pb-2">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -115,6 +80,9 @@ export default async function SchedulesPage() {
                       <td className="py-2 text-gray-600">{b.vans?.name ?? "—"}</td>
                       <td className="py-2">
                         <Badge status={b.status} />
+                      </td>
+                      <td className="py-2">
+                        <BookingActions id={b.id} serviceDate={b.service_date} />
                       </td>
                     </tr>
                   ))}
