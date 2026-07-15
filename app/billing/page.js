@@ -51,7 +51,7 @@ export default async function BillingPage({ searchParams }) {
       .in("status", ["completed", "dropped_off"]),
     supabaseAdmin
       .from("payment_settlements")
-      .select("customer_id, amount_cents, method, settled_at")
+      .select("customer_id, amount_cents, method, note, settled_at")
       .eq("month_start", monthStart),
   ]);
 

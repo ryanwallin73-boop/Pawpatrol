@@ -4,7 +4,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 const METHODS = ["ach", "venmo"];
 
 export async function POST(request) {
-  const { customer_id, month_start, amount_cents, settled, method } =
+  const { customer_id, month_start, amount_cents, settled, method, note } =
     await request.json();
 
   if (!customer_id || !/^\d{4}-\d{2}-01$/.test(month_start ?? "")) {
@@ -27,6 +27,7 @@ export async function POST(request) {
         month_start,
         amount_cents: amount_cents ?? null,
         method,
+        note: (note ?? "").trim() || null,
         settled_at: new Date().toISOString(),
       },
       { onConflict: "customer_id,month_start" }
