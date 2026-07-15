@@ -24,6 +24,7 @@ export default function BookingForm({ dogs, services, vans }) {
     dog_id: "",
     service_id: "",
     service_date: today,
+    end_date: "",
     van_id: "",
     notes: "",
   });
@@ -33,6 +34,25 @@ export default function BookingForm({ dogs, services, vans }) {
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
+  const selectedService = services.find((s) => s.id === form.service_id);
+  const isBoarding = (selectedService?.name ?? "")
+    .toLowerCase()
+    .includes("boarding");
+
+  const addDays = (dateStr, n) => {
+    const d = new Date(dateStr + "T00:00:00Z");
+    d.setUTCDate(d.getUTCDate() + n);
+    return d.toISOString().slice(0, 10);
+  };
+  const nights =
+    isBoarding && form.end_date > form.service_date
+      ? Math.round(
+          (new Date(form.end_date + "T00:00:00Z") -
+            new Date(form.service_date + "T00:00:00Z")) /
+            86400000
+        )
+      : 0;
+
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
@@ -41,7 +61,7 @@ export default function BookingForm({ dogs, services, vans }) {
     const res = await fetch("/api/bookings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ ...form, end_date: isBoarding ? form.end_date : "" }),
     });
 
     if (!res.ok) {
@@ -126,7 +146,7 @@ export default function BookingForm({ dogs, services, vans }) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className={label}>Date</label>
+          <label className={label}>{isBoarding ? "Check-in date" : "Date"}</label>
           <input
             className={field}
             type="date"
@@ -135,6 +155,26 @@ export default function BookingForm({ dogs, services, vans }) {
             onChange={set("service_date")}
           />
         </div>
+        {isBoarding ? (
+          <div>
+            <label className={label}>Check-out date</label>
+            <input
+              className={field}
+              type="date"
+              required
+              min={addDays(form.service_date, 1)}
+              value={form.end_date}
+              onChange={set("end_date")}
+            />
+            {nights > 0 && typeof selectedService?.price_cents === "number" ? (
+              <p className="mt-1 text-sm text-gray-500">
+                {nights} night{nights === 1 ? "" : "s"} ×{" "}
+                {money(selectedService.price_cents)} ={" "}
+                {money(nights * selectedService.price_cents)}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
         <div>
           <label className={label}>Van (optional)</label>
           <select className={field} value={form.van_id} onChange={set("van_id")}>

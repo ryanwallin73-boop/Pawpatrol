@@ -63,7 +63,9 @@ function monthlyEmailHtml({ firstName, invoice, schedule, link }) {
           .map(
             (l) => `
         <tr>
-          <td style="padding:6px 12px 6px 0;border-bottom:1px solid #eee;">${longDate(l.date)}</td>
+          <td style="padding:6px 12px 6px 0;border-bottom:1px solid #eee;">${longDate(l.date)}${
+            l.endDate ? ` – ${longDate(l.endDate)}` : ""
+          }</td>
           <td style="padding:6px 12px 6px 0;border-bottom:1px solid #eee;">${l.dog}</td>
           <td style="padding:6px 12px 6px 0;border-bottom:1px solid #eee;">${l.service}</td>
           <td style="padding:6px 0;border-bottom:1px solid #eee;text-align:right;">${
@@ -95,7 +97,12 @@ function monthlyEmailHtml({ firstName, invoice, schedule, link }) {
         <h4 style="margin:12px 0 4px;color:#2C7A7B;">${dogName}</h4>
         <ul style="margin:4px 0;padding-left:20px;">
           ${visits
-            .map((v) => `<li>${longDate(v.date)} — ${v.service}</li>`)
+            .map(
+              (v) =>
+                `<li>${longDate(v.date)}${
+                  v.endDate ? ` – ${longDate(v.endDate)}` : ""
+                } — ${v.service}</li>`
+            )
             .join("")}
         </ul>`
       )
@@ -160,7 +167,7 @@ export async function GET(request) {
     supabaseAdmin
       .from("bookings")
       .select(
-        `id, service_date,
+        `id, service_date, end_date,
          dogs ( name, customers ( id, first_name, email ) ),
          services ( name )`
       )
@@ -171,7 +178,7 @@ export async function GET(request) {
     supabaseAdmin
       .from("bookings")
       .select(
-        `id, service_date, price_cents,
+        `id, service_date, end_date, price_cents,
          dogs ( name, customers ( id, first_name, email ) ),
          services ( name )`
       )
@@ -207,10 +214,20 @@ export async function GET(request) {
     if (!customer?.email) continue;
     const entry = entryFor(customer);
     entry.invoice ??= { month: invoiceMonth, lines: [], totalCents: 0 };
+    const nights = b.end_date
+      ? Math.round(
+          (new Date(b.end_date + "T00:00:00Z") -
+            new Date(b.service_date + "T00:00:00Z")) /
+            86400000
+        )
+      : 0;
     entry.invoice.lines.push({
       date: b.service_date,
+      endDate: b.end_date,
       dog: b.dogs?.name ?? "Your dog",
-      service: b.services?.name ?? "Grooming",
+      service:
+        (b.services?.name ?? "Grooming") +
+        (nights > 0 ? ` (${nights} night${nights === 1 ? "" : "s"})` : ""),
       priceCents: b.price_cents,
     });
     entry.invoice.totalCents += b.price_cents ?? 0;
@@ -224,6 +241,7 @@ export async function GET(request) {
     const dogName = b.dogs?.name ?? "Your dog";
     (entry.schedule.dogs[dogName] ??= []).push({
       date: b.service_date,
+      endDate: b.end_date,
       service: b.services?.name ?? "Grooming",
     });
   }

@@ -21,7 +21,7 @@ export default async function SchedulesPage() {
     supabaseAdmin
       .from("bookings")
       .select(
-        `id, service_date, status,
+        `id, service_date, end_date, status,
          dogs ( name, customers ( first_name, last_name ) ),
          services ( name ),
          vans ( name )`
@@ -73,7 +73,10 @@ export default async function SchedulesPage() {
                 <tbody className="divide-y divide-gray-100">
                   {bookings.data.map((b) => (
                     <tr key={b.id}>
-                      <td className="py-2 font-medium">{b.service_date}</td>
+                      <td className="py-2 font-medium">
+                        {b.service_date}
+                        {b.end_date ? ` – ${b.end_date}` : ""}
+                      </td>
                       <td className="py-2">{b.dogs?.name ?? "—"}</td>
                       <td className="py-2 text-gray-600">{dogOwner(b.dogs)}</td>
                       <td className="py-2">{b.services?.name ?? "—"}</td>
