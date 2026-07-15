@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { findVacation } from "@/lib/vacations";
 
 export async function POST(request) {
   const { dog_id, service_id, service_date, van_id, notes } =
@@ -9,6 +10,16 @@ export async function POST(request) {
     return NextResponse.json(
       { error: "Dog, service, and date are required." },
       { status: 400 }
+    );
+  }
+
+  const vacation = await findVacation(dog_id, service_date);
+  if (vacation) {
+    return NextResponse.json(
+      {
+        error: `${vacation.dogName} is on vacation ${vacation.start_date} to ${vacation.end_date}.`,
+      },
+      { status: 409 }
     );
   }
 

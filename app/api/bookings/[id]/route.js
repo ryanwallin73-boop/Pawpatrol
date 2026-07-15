@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { findVacation } from "@/lib/vacations";
 
 export async function PATCH(request, { params }) {
   const { id } = await params;
@@ -7,6 +8,25 @@ export async function PATCH(request, { params }) {
 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(service_date ?? "")) {
     return NextResponse.json({ error: "Invalid date." }, { status: 400 });
+  }
+
+  const { data: booking, error: lookupError } = await supabaseAdmin
+    .from("bookings")
+    .select("dog_id")
+    .eq("id", id)
+    .single();
+  if (lookupError) {
+    return NextResponse.json({ error: lookupError.message }, { status: 404 });
+  }
+
+  const vacation = await findVacation(booking.dog_id, service_date);
+  if (vacation) {
+    return NextResponse.json(
+      {
+        error: `${vacation.dogName} is on vacation ${vacation.start_date} to ${vacation.end_date}.`,
+      },
+      { status: 409 }
+    );
   }
 
   // The booking may be on a route for its old date; unassign it.

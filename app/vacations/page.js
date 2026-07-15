@@ -1,7 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { PageHeader, Card, Empty, ErrorNote } from "@/app/_components/ui";
 import VacationForm from "./VacationForm";
-import DeleteButton from "./DeleteButton";
+import VacationActions from "./VacationActions";
 
 export const dynamic = "force-dynamic";
 
@@ -79,7 +79,11 @@ export default async function VacationsPage() {
                       </td>
                       <td className="py-2 text-gray-600">{v.reason ?? "—"}</td>
                       <td className="py-2 text-right">
-                        <DeleteButton id={v.id} />
+                        <VacationActions
+                          id={v.id}
+                          startDate={v.start_date}
+                          endDate={v.end_date}
+                        />
                       </td>
                     </tr>
                   ))}

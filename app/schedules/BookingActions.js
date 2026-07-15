@@ -20,6 +20,9 @@ export default function BookingActions({ id, serviceDate }) {
     if (res.ok) {
       setEditing(false);
       router.refresh();
+    } else {
+      const { error } = await res.json().catch(() => ({}));
+      alert(error || "Couldn't update the booking.");
     }
   }
 
