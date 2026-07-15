@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 const ALLOWED = [
   "scheduled",
+  "pending",
   "picked_up",
   "in_service",
   "completed",

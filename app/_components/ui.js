@@ -70,8 +70,8 @@ const statusColors = {
   dropped_off: "bg-emerald-100 text-emerald-800",
   canceled: "bg-red-100 text-red-700",
   no_show: "bg-red-100 text-red-700",
-  // route stops
-  pending: "bg-gray-100 text-gray-700",
+  // route stops + customer-requested booking changes
+  pending: "bg-purple-100 text-purple-800",
   arrived: "bg-blue-100 text-blue-800",
   done: "bg-emerald-100 text-emerald-800",
   skipped: "bg-red-100 text-red-700",

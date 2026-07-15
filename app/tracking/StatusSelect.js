@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 const STATUSES = [
   ["scheduled", "Scheduled"],
+  ["pending", "Pending (customer request)"],
   ["picked_up", "Picked up"],
   ["in_service", "In service"],
   ["completed", "Completed"],
