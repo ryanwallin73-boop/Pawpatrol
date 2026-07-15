@@ -15,18 +15,6 @@ const screens = [
     blurb: "Recurring standing schedules, bookings, and vacation days.",
     icon: "🗓️",
   },
-  {
-    href: "/routing",
-    title: "Van Routing",
-    blurb: "Daily routes per van and neighborhood, with their stops.",
-    icon: "🚐",
-  },
-  {
-    href: "/today",
-    title: "Today's Routes",
-    blurb: "Every stop scheduled for today, ordered by van.",
-    icon: "📍",
-  },
 ];
 
 export default function Home() {
