@@ -16,13 +16,18 @@ const navLinks = [
   { href: "/routing", label: "Van Routing" },
   { href: "/today", label: "Today's Routes" },
   { href: "/ach-setups", label: "ACH Setups" },
+  { href: "/billing", label: "Billing" },
 ];
 
 export default function Header() {
   const pathname = usePathname();
 
   // No staff nav on the public, customer-facing pages.
-  if (pathname?.startsWith("/login") || pathname?.startsWith("/signup")) {
+  if (
+    pathname?.startsWith("/login") ||
+    pathname?.startsWith("/signup") ||
+    pathname?.startsWith("/my-schedule")
+  ) {
     return null;
   }
 
