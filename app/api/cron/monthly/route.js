@@ -19,6 +19,13 @@ const addDays = (dateStr, n) => {
   return d.toISOString().slice(0, 10);
 };
 
+const firstOfNextMonth = (dateStr) => {
+  const d = new Date(dateStr + "T00:00:00Z");
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1))
+    .toISOString()
+    .slice(0, 10);
+};
+
 const longDate = (dateStr) =>
   new Intl.DateTimeFormat("en-US", {
     weekday: "long",
@@ -74,15 +81,19 @@ export async function GET(request) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
 
+  // Test mode (?test=1): run now regardless of the date, but deliver every
+  // email to the shop's own inbox instead of customers.
+  const test = request.nextUrl.searchParams.get("test") === "1";
+
   // Runs every day; only act on the last day of the month (Central time).
   const today = todayCentral();
   const tomorrow = addDays(today, 1);
-  if (!tomorrow.endsWith("-01")) {
+  if (!test && !tomorrow.endsWith("-01")) {
     return NextResponse.json({ ok: true, skipped: "not the last day of the month" });
   }
 
   // 1. Generate next month's bookings from recurring schedules.
-  const generated = await generateMonth(tomorrow);
+  const generated = await generateMonth(firstOfNextMonth(today));
   if (generated.error) {
     return NextResponse.json({ error: generated.error }, { status: 500 });
   }
@@ -127,8 +138,10 @@ export async function GET(request) {
   for (const { customer, dogs } of byCustomer.values()) {
     try {
       await sendEmail({
-        to: customer.email,
-        subject: `Your Paw Patrol grooming days for ${month}`,
+        to: test ? process.env.YAHOO_USER : customer.email,
+        subject: test
+          ? `[TEST — would go to ${customer.email}] Your Paw Patrol grooming days for ${month}`
+          : `Your Paw Patrol grooming days for ${month}`,
         html: scheduleEmailHtml({
           firstName: customer.first_name,
           dogs,
@@ -144,6 +157,7 @@ export async function GET(request) {
 
   return NextResponse.json({
     ok: true,
+    test,
     generated,
     customers: byCustomer.size,
     sent,
