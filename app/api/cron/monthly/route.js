@@ -75,6 +75,52 @@ function scheduleEmailHtml({ firstName, dogs, month, link }) {
   </div>`;
 }
 
+const money = (cents) => `$${(cents / 100).toFixed(2)}`;
+
+function invoiceEmailHtml({ firstName, month, lines, totalCents }) {
+  const rows = lines
+    .map(
+      (l) => `
+        <tr>
+          <td style="padding:6px 12px 6px 0;border-bottom:1px solid #eee;">${longDate(l.date)}</td>
+          <td style="padding:6px 12px 6px 0;border-bottom:1px solid #eee;">${l.dog}</td>
+          <td style="padding:6px 12px 6px 0;border-bottom:1px solid #eee;">${l.service}</td>
+          <td style="padding:6px 0;border-bottom:1px solid #eee;text-align:right;">${
+            l.priceCents == null ? "—" : money(l.priceCents)
+          }</td>
+        </tr>`
+    )
+    .join("");
+
+  return `
+  <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#333;">
+    <h2 style="color:#B85C38;">Paw Patrol Mobile Grooming</h2>
+    <p>Hi ${firstName},</p>
+    <p>Here's your invoice for ${month}:</p>
+    <table style="width:100%;border-collapse:collapse;font-size:14px;">
+      <thead>
+        <tr style="text-align:left;color:#777;font-size:12px;text-transform:uppercase;">
+          <th style="padding-bottom:6px;">Date</th>
+          <th style="padding-bottom:6px;">Dog</th>
+          <th style="padding-bottom:6px;">Service</th>
+          <th style="padding-bottom:6px;text-align:right;">Amount</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+      <tfoot>
+        <tr>
+          <td colspan="3" style="padding-top:10px;font-weight:bold;">Total</td>
+          <td style="padding-top:10px;font-weight:bold;text-align:right;">${money(totalCents)}</td>
+        </tr>
+      </tfoot>
+    </table>
+    <p style="margin-top:20px;font-size:13px;color:#777;">
+      Per your payment authorization, this amount will be collected from your
+      bank account on file. Questions? Just reply to this email.
+    </p>
+  </div>`;
+}
+
 export async function GET(request) {
   const secret = process.env.CRON_SECRET;
   if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) {
@@ -155,6 +201,65 @@ export async function GET(request) {
     }
   }
 
+  // 4. Invoice the month that's ending: completed visits, priced as booked.
+  const invoiceStart = `${today.slice(0, 7)}-01`;
+  const { data: doneBookings, error: invoiceError } = await supabaseAdmin
+    .from("bookings")
+    .select(
+      `id, service_date, price_cents,
+       dogs ( name, customers ( id, first_name, email ) ),
+       services ( name )`
+    )
+    .gte("service_date", invoiceStart)
+    .lte("service_date", today)
+    .in("status", ["completed", "dropped_off"])
+    .order("service_date", { ascending: true });
+
+  if (invoiceError) {
+    return NextResponse.json({ error: invoiceError.message }, { status: 500 });
+  }
+
+  const invoices = new Map();
+  for (const b of doneBookings ?? []) {
+    const customer = b.dogs?.customers;
+    if (!customer?.email) continue;
+    let entry = invoices.get(customer.id);
+    if (!entry) {
+      entry = { customer, lines: [], totalCents: 0 };
+      invoices.set(customer.id, entry);
+    }
+    entry.lines.push({
+      date: b.service_date,
+      dog: b.dogs?.name ?? "Your dog",
+      service: b.services?.name ?? "Grooming",
+      priceCents: b.price_cents,
+    });
+    entry.totalCents += b.price_cents ?? 0;
+  }
+
+  const invoiceMonth = monthName(invoiceStart);
+  let invoicesSent = 0;
+  const invoiceFailures = [];
+  for (const { customer, lines, totalCents } of invoices.values()) {
+    try {
+      await sendEmail({
+        to: test ? process.env.YAHOO_USER : customer.email,
+        subject: test
+          ? `[TEST — would go to ${customer.email}] Your Paw Patrol invoice for ${invoiceMonth}`
+          : `Your Paw Patrol invoice for ${invoiceMonth}`,
+        html: invoiceEmailHtml({
+          firstName: customer.first_name,
+          month: invoiceMonth,
+          lines,
+          totalCents,
+        }),
+      });
+      invoicesSent++;
+    } catch (e) {
+      invoiceFailures.push({ email: customer.email, error: e.message });
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     test,
@@ -162,5 +267,7 @@ export async function GET(request) {
     customers: byCustomer.size,
     sent,
     failures,
+    invoicesSent,
+    invoiceFailures,
   });
 }
