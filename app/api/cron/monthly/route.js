@@ -254,6 +254,7 @@ export async function GET(request) {
     try {
       await sendEmail({
         to: test ? process.env.YAHOO_USER : customer.email,
+        cc: test ? "katherine@agcenter.com" : undefined,
         subject: test
           ? `[TEST — would go to ${customer.email}] ${subject}`
           : subject,
