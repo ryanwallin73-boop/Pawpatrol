@@ -21,7 +21,7 @@ export default async function MySchedulePage({ params }) {
       <Shell>
         <p className="text-gray-600">
           This link isn't valid. Please use the link from your most recent
-          Paw Patrol email, or contact us for help.
+          Austin Paw Patrol email, or contact us for help.
         </p>
       </Shell>
     );
@@ -96,7 +96,7 @@ function Shell({ children }) {
   return (
     <main className="mx-auto max-w-xl px-4 py-10">
       <h1 className="text-2xl font-bold text-[#B85C38]">
-        Paw Patrol Mobile Grooming
+        Austin Paw Patrol
       </h1>
       <h2 className="mt-1 text-sm font-medium uppercase tracking-wide text-gray-400">
         My schedule

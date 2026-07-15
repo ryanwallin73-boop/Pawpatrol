@@ -41,62 +41,14 @@ const monthName = (dateStr) =>
     timeZone: "UTC",
   }).format(new Date(dateStr + "T00:00:00Z"));
 
-function scheduleEmailHtml({ firstName, dogs, month, link }) {
-  const dogSections = Object.entries(dogs)
-    .map(
-      ([dogName, visits]) => `
-        <h3 style="margin:16px 0 4px;color:#2C7A7B;">${dogName}</h3>
-        <ul style="margin:4px 0;padding-left:20px;">
-          ${visits
-            .map((v) => `<li>${longDate(v.date)} — ${v.service}</li>`)
-            .join("")}
-        </ul>`
-    )
-    .join("");
-
-  return `
-  <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#333;">
-    <h2 style="color:#B85C38;">Paw Patrol Mobile Grooming</h2>
-    <p>Hi ${firstName},</p>
-    <p>Here's when we'll see your pup${
-      Object.keys(dogs).length > 1 ? "s" : ""
-    } in ${month}:</p>
-    ${dogSections}
-    <p style="margin:24px 0;">
-      <a href="${link}"
-         style="background:#B85C38;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:bold;">
-        View, change, or cancel appointments
-      </a>
-    </p>
-    <p style="font-size:13px;color:#777;">
-      Need a different day? Use the link above to cancel a visit or request a
-      new date — date changes are confirmed by our team before they're final.
-    </p>
-  </div>`;
-}
-
 const money = (cents) => `$${(cents / 100).toFixed(2)}`;
 
-function invoiceEmailHtml({ firstName, month, lines, totalCents }) {
-  const rows = lines
-    .map(
-      (l) => `
-        <tr>
-          <td style="padding:6px 12px 6px 0;border-bottom:1px solid #eee;">${longDate(l.date)}</td>
-          <td style="padding:6px 12px 6px 0;border-bottom:1px solid #eee;">${l.dog}</td>
-          <td style="padding:6px 12px 6px 0;border-bottom:1px solid #eee;">${l.service}</td>
-          <td style="padding:6px 0;border-bottom:1px solid #eee;text-align:right;">${
-            l.priceCents == null ? "—" : money(l.priceCents)
-          }</td>
-        </tr>`
-    )
-    .join("");
-
-  return `
-  <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#333;">
-    <h2 style="color:#B85C38;">Paw Patrol Mobile Grooming</h2>
-    <p>Hi ${firstName},</p>
-    <p>Here's your invoice for ${month}:</p>
+// One email per customer: invoice for the month that's ending (if they had
+// completed visits) plus the schedule for next month (if they have bookings).
+function monthlyEmailHtml({ firstName, invoice, schedule, link }) {
+  const invoiceSection = invoice
+    ? `
+    <h3 style="margin:24px 0 8px;color:#B85C38;">Your ${invoice.month} invoice</h3>
     <table style="width:100%;border-collapse:collapse;font-size:14px;">
       <thead>
         <tr style="text-align:left;color:#777;font-size:12px;text-transform:uppercase;">
@@ -106,19 +58,76 @@ function invoiceEmailHtml({ firstName, month, lines, totalCents }) {
           <th style="padding-bottom:6px;text-align:right;">Amount</th>
         </tr>
       </thead>
-      <tbody>${rows}</tbody>
+      <tbody>
+        ${invoice.lines
+          .map(
+            (l) => `
+        <tr>
+          <td style="padding:6px 12px 6px 0;border-bottom:1px solid #eee;">${longDate(l.date)}</td>
+          <td style="padding:6px 12px 6px 0;border-bottom:1px solid #eee;">${l.dog}</td>
+          <td style="padding:6px 12px 6px 0;border-bottom:1px solid #eee;">${l.service}</td>
+          <td style="padding:6px 0;border-bottom:1px solid #eee;text-align:right;">${
+            l.priceCents == null ? "—" : money(l.priceCents)
+          }</td>
+        </tr>`
+          )
+          .join("")}
+      </tbody>
       <tfoot>
         <tr>
           <td colspan="3" style="padding-top:10px;font-weight:bold;">Total</td>
-          <td style="padding-top:10px;font-weight:bold;text-align:right;">${money(totalCents)}</td>
+          <td style="padding-top:10px;font-weight:bold;text-align:right;">${money(invoice.totalCents)}</td>
         </tr>
       </tfoot>
     </table>
-    <p style="margin-top:20px;font-size:13px;color:#777;">
+    <p style="font-size:13px;color:#777;">
       Per your payment authorization, this amount will be collected from your
-      bank account on file. Questions? Just reply to this email.
+      bank account on file.
+    </p>`
+    : "";
+
+  const scheduleSection = schedule
+    ? `
+    <h3 style="margin:24px 0 8px;color:#B85C38;">${schedule.month} grooming days</h3>
+    ${Object.entries(schedule.dogs)
+      .map(
+        ([dogName, visits]) => `
+        <h4 style="margin:12px 0 4px;color:#2C7A7B;">${dogName}</h4>
+        <ul style="margin:4px 0;padding-left:20px;">
+          ${visits
+            .map((v) => `<li>${longDate(v.date)} — ${v.service}</li>`)
+            .join("")}
+        </ul>`
+      )
+      .join("")}
+    <p style="margin:24px 0;">
+      <a href="${link}"
+         style="background:#B85C38;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:bold;">
+        View, change, or cancel appointments
+      </a>
     </p>
+    <p style="font-size:13px;color:#777;">
+      Need a different day? Use the link above to cancel a visit or request a
+      new date — date changes are confirmed by our team before they're final.
+    </p>`
+    : "";
+
+  return `
+  <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#333;">
+    <h2 style="color:#B85C38;">Austin Paw Patrol</h2>
+    <p>Hi ${firstName},</p>
+    ${invoiceSection}
+    ${scheduleSection}
+    <p style="font-size:13px;color:#777;">Questions? Just reply to this email.</p>
   </div>`;
+}
+
+function subjectFor({ invoice, schedule }) {
+  if (invoice && schedule) {
+    return `Austin Paw Patrol: your ${invoice.month} invoice & ${schedule.month} schedule`;
+  }
+  if (invoice) return `Your Austin Paw Patrol invoice for ${invoice.month}`;
+  return `Your Austin Paw Patrol grooming days for ${schedule.month}`;
 }
 
 export async function GET(request) {
@@ -144,119 +153,102 @@ export async function GET(request) {
     return NextResponse.json({ error: generated.error }, { status: 500 });
   }
 
-  // 2. Collect next month's scheduled bookings, grouped by customer.
-  const { data: bookings, error } = await supabaseAdmin
-    .from("bookings")
-    .select(
-      `id, service_date,
-       dogs ( name, customers ( id, first_name, email ) ),
-       services ( name )`
-    )
-    .gte("service_date", generated.periodStart)
-    .lte("service_date", generated.periodEnd)
-    .eq("status", "scheduled")
-    .order("service_date", { ascending: true });
+  // 2. Next month's scheduled bookings and the ending month's completed
+  //    visits, both grouped per customer.
+  const invoiceStart = `${today.slice(0, 7)}-01`;
+  const [upcomingRes, doneRes] = await Promise.all([
+    supabaseAdmin
+      .from("bookings")
+      .select(
+        `id, service_date,
+         dogs ( name, customers ( id, first_name, email ) ),
+         services ( name )`
+      )
+      .gte("service_date", generated.periodStart)
+      .lte("service_date", generated.periodEnd)
+      .eq("status", "scheduled")
+      .order("service_date", { ascending: true }),
+    supabaseAdmin
+      .from("bookings")
+      .select(
+        `id, service_date, price_cents,
+         dogs ( name, customers ( id, first_name, email ) ),
+         services ( name )`
+      )
+      .gte("service_date", invoiceStart)
+      .lte("service_date", today)
+      .in("status", ["completed", "dropped_off"])
+      .order("service_date", { ascending: true }),
+  ]);
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (upcomingRes.error || doneRes.error) {
+    return NextResponse.json(
+      { error: (upcomingRes.error || doneRes.error).message },
+      { status: 500 }
+    );
   }
 
+  const scheduleMonth = monthName(generated.periodStart);
+  const invoiceMonth = monthName(invoiceStart);
+
+  // customer id -> { customer, invoice?, schedule? }
   const byCustomer = new Map();
-  for (const b of bookings ?? []) {
-    const customer = b.dogs?.customers;
-    if (!customer?.email) continue;
+  const entryFor = (customer) => {
     let entry = byCustomer.get(customer.id);
     if (!entry) {
-      entry = { customer, dogs: {} };
+      entry = { customer, invoice: null, schedule: null };
       byCustomer.set(customer.id, entry);
     }
+    return entry;
+  };
+
+  for (const b of doneRes.data ?? []) {
+    const customer = b.dogs?.customers;
+    if (!customer?.email) continue;
+    const entry = entryFor(customer);
+    entry.invoice ??= { month: invoiceMonth, lines: [], totalCents: 0 };
+    entry.invoice.lines.push({
+      date: b.service_date,
+      dog: b.dogs?.name ?? "Your dog",
+      service: b.services?.name ?? "Grooming",
+      priceCents: b.price_cents,
+    });
+    entry.invoice.totalCents += b.price_cents ?? 0;
+  }
+
+  for (const b of upcomingRes.data ?? []) {
+    const customer = b.dogs?.customers;
+    if (!customer?.email) continue;
+    const entry = entryFor(customer);
+    entry.schedule ??= { month: scheduleMonth, dogs: {} };
     const dogName = b.dogs?.name ?? "Your dog";
-    (entry.dogs[dogName] ??= []).push({
+    (entry.schedule.dogs[dogName] ??= []).push({
       date: b.service_date,
       service: b.services?.name ?? "Grooming",
     });
   }
 
-  // 3. Email each customer their month at a glance.
-  const month = monthName(generated.periodStart);
+  // 3. One email per customer.
   let sent = 0;
   const failures = [];
-  for (const { customer, dogs } of byCustomer.values()) {
+  for (const { customer, invoice, schedule } of byCustomer.values()) {
+    const subject = subjectFor({ invoice, schedule });
     try {
       await sendEmail({
         to: test ? process.env.YAHOO_USER : customer.email,
         subject: test
-          ? `[TEST — would go to ${customer.email}] Your Paw Patrol grooming days for ${month}`
-          : `Your Paw Patrol grooming days for ${month}`,
-        html: scheduleEmailHtml({
+          ? `[TEST — would go to ${customer.email}] ${subject}`
+          : subject,
+        html: monthlyEmailHtml({
           firstName: customer.first_name,
-          dogs,
-          month,
+          invoice,
+          schedule,
           link: `${siteUrl()}/my-schedule/${customerToken(customer.id)}`,
         }),
       });
       sent++;
     } catch (e) {
       failures.push({ email: customer.email, error: e.message });
-    }
-  }
-
-  // 4. Invoice the month that's ending: completed visits, priced as booked.
-  const invoiceStart = `${today.slice(0, 7)}-01`;
-  const { data: doneBookings, error: invoiceError } = await supabaseAdmin
-    .from("bookings")
-    .select(
-      `id, service_date, price_cents,
-       dogs ( name, customers ( id, first_name, email ) ),
-       services ( name )`
-    )
-    .gte("service_date", invoiceStart)
-    .lte("service_date", today)
-    .in("status", ["completed", "dropped_off"])
-    .order("service_date", { ascending: true });
-
-  if (invoiceError) {
-    return NextResponse.json({ error: invoiceError.message }, { status: 500 });
-  }
-
-  const invoices = new Map();
-  for (const b of doneBookings ?? []) {
-    const customer = b.dogs?.customers;
-    if (!customer?.email) continue;
-    let entry = invoices.get(customer.id);
-    if (!entry) {
-      entry = { customer, lines: [], totalCents: 0 };
-      invoices.set(customer.id, entry);
-    }
-    entry.lines.push({
-      date: b.service_date,
-      dog: b.dogs?.name ?? "Your dog",
-      service: b.services?.name ?? "Grooming",
-      priceCents: b.price_cents,
-    });
-    entry.totalCents += b.price_cents ?? 0;
-  }
-
-  const invoiceMonth = monthName(invoiceStart);
-  let invoicesSent = 0;
-  const invoiceFailures = [];
-  for (const { customer, lines, totalCents } of invoices.values()) {
-    try {
-      await sendEmail({
-        to: test ? process.env.YAHOO_USER : customer.email,
-        subject: test
-          ? `[TEST — would go to ${customer.email}] Your Paw Patrol invoice for ${invoiceMonth}`
-          : `Your Paw Patrol invoice for ${invoiceMonth}`,
-        html: invoiceEmailHtml({
-          firstName: customer.first_name,
-          month: invoiceMonth,
-          lines,
-          totalCents,
-        }),
-      });
-      invoicesSent++;
-    } catch (e) {
-      invoiceFailures.push({ email: customer.email, error: e.message });
     }
   }
 
@@ -267,7 +259,5 @@ export async function GET(request) {
     customers: byCustomer.size,
     sent,
     failures,
-    invoicesSent,
-    invoiceFailures,
   });
 }
