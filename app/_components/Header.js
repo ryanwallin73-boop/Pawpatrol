@@ -12,9 +12,6 @@ const navLinks = [
   { href: "/recurring", label: "Recurring" },
   { href: "/tracking", label: "Daily Tracking" },
   { href: "/vacations", label: "Vacations" },
-  { href: "/routes", label: "Route Builder" },
-  { href: "/routing", label: "Van Routing" },
-  { href: "/today", label: "Today's Routes" },
   { href: "/ach-setups", label: "ACH Setups" },
   { href: "/billing", label: "Billing" },
 ];
