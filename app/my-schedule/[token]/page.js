@@ -37,7 +37,7 @@ export default async function MySchedulePage({ params }) {
     supabaseAdmin
       .from("bookings")
       .select(
-        `id, service_date, status,
+        `id, service_date, end_date, status,
          dogs!inner ( name, customer_id ),
          services ( name )`
       )
@@ -80,7 +80,9 @@ export default async function MySchedulePage({ params }) {
               booking={{
                 id: b.id,
                 status: b.status,
-                dateLabel: longDate(b.service_date),
+                dateLabel:
+                  longDate(b.service_date) +
+                  (b.end_date ? ` – ${longDate(b.end_date)}` : ""),
                 dog: b.dogs?.name ?? "Your dog",
                 service: b.services?.name ?? "Grooming",
               }}
