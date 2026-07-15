@@ -90,12 +90,11 @@ function monthlyEmailHtml({ firstName, invoice, schedule, link }) {
 
   const scheduleSection = schedule
     ? `
-    <h3 style="margin:24px 0 8px;color:#B85C38;">${schedule.month} grooming days</h3>
     ${Object.entries(schedule.dogs)
       .map(
         ([dogName, visits]) => `
-        <h4 style="margin:12px 0 4px;color:#2C7A7B;">${dogName}</h4>
-        <ul style="margin:4px 0;padding-left:20px;">
+        <p style="margin:16px 0 4px;color:#000;">Here are ${dogName}'s ${schedule.month} grooming days:</p>
+        <ul style="margin:4px 0;padding-left:20px;color:#000;">
           ${visits
             .map(
               (v) =>
@@ -107,25 +106,33 @@ function monthlyEmailHtml({ firstName, invoice, schedule, link }) {
         </ul>`
       )
       .join("")}
-    <p style="margin:24px 0;">
+    <p style="margin:28px 0;">
       <a href="${link}"
-         style="background:#B85C38;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:bold;">
-        View, change, or cancel appointments
+         style="display:inline-block;background:#B85C38;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:16px;box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+        Change or Cancel
       </a>
     </p>
     <p style="font-size:13px;color:#777;">
-      Need a different day? Use the link above to cancel a visit or request a
-      new date — date changes are confirmed by our team before they're final.
+      Date changes are confirmed by our team before they're final.
     </p>`
     : "";
 
   return `
-  <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#333;">
-    <h2 style="color:#B85C38;">Austin Paw Patrol</h2>
-    <p>Hi ${firstName},</p>
+  <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#000;">
+    <table role="presentation" style="border-collapse:collapse;">
+      <tr>
+        <td><img src="${siteUrl()}/logo.png" alt="Austin Paw Patrol logo" height="40" style="display:block;"></td>
+        <td style="padding-left:12px;">
+          <h2 style="margin:0;color:#B85C38;">Austin Paw Patrol</h2>
+        </td>
+      </tr>
+    </table>
+    <div style="border-bottom:1px solid #ddd;margin:12px 0 16px;"></div>
+    <p style="color:#000;">Hi ${firstName},</p>
     ${invoiceSection}
     ${scheduleSection}
-    <p style="font-size:13px;color:#777;">Questions? Just reply to this email.</p>
+    <p style="margin-top:24px;color:#000;">Thanks,<br>Brandy</p>
+    <p><a href="https://www.austinpawpatrol.com/" style="color:#2C7A7B;">www.austinpawpatrol.com</a></p>
   </div>`;
 }
 
