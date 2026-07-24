@@ -106,6 +106,9 @@ export default async function CustomersPage() {
               </div>
             </Card>
           ))}
+          <p className="pt-2 text-center text-sm text-gray-500">
+            {customers.length} customer{customers.length === 1 ? "" : "s"} total
+          </p>
         </div>
       )}
     </div>
