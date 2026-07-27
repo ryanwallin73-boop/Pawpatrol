@@ -7,6 +7,7 @@ import {
   NewBookingButton,
 } from "@/app/_components/ui";
 import StatusSelect from "./StatusSelect";
+import DateNav from "./DateNav";
 
 export const dynamic = "force-dynamic";
 
@@ -15,8 +16,15 @@ const fmtTime = (ts) =>
     ? new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
     : "—";
 
-export default async function TrackingPage() {
-  const today = new Date().toISOString().slice(0, 10);
+export default async function TrackingPage({ searchParams }) {
+  const params = await searchParams;
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Chicago",
+  }).format(new Date());
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(params?.date ?? "")
+    ? params.date
+    : today;
+  const isToday = date === today;
 
   const { data: bookings, error } = await supabaseAdmin
     .from("bookings")
@@ -26,21 +34,26 @@ export default async function TrackingPage() {
        services ( name ),
        vans ( name )`
     )
-    .eq("service_date", today)
+    .eq("service_date", date)
     .order("created_at", { ascending: true });
 
   return (
     <div>
       <PageHeader
         title="Daily Tracking"
-        subtitle={`Update each dog's status through the day — ${today}.`}
+        subtitle={
+          isToday
+            ? "Update each dog's status through the day. Use the date picker to go back and mark a day you missed."
+            : "Viewing a past day — mark any dog that attended as completed."
+        }
         action={<NewBookingButton />}
       />
+      <DateNav date={date} today={today} />
       {error ? (
         <ErrorNote error={error} />
       ) : bookings.length === 0 ? (
         <Card>
-          <Empty>No bookings for today.</Empty>
+          <Empty>No bookings for this day.</Empty>
         </Card>
       ) : (
         <Card>
