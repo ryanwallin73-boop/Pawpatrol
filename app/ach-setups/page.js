@@ -25,7 +25,7 @@ export default async function AchSetupsPage() {
     <div>
       <PageHeader
         title="ACH Setups"
-        subtitle="Key these into the bank's payor system, then purge the numbers. They are not stored anywhere else."
+        subtitle="The following customers have entered their bank's routing information and are ready for payments."
       />
       {error ? (
         <ErrorNote error={error} />
