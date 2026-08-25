@@ -4,6 +4,13 @@ import CompleteButton from "./CompleteButton";
 
 export const dynamic = "force-dynamic";
 
+// Full account/routing numbers are never rendered — only the last 4 digits.
+const masked = (value) => {
+  const digits = (value ?? "").replace(/\D/g, "");
+  if (digits.length <= 4) return digits || "—";
+  return "•".repeat(digits.length - 4) + digits.slice(-4);
+};
+
 export default async function AchSetupsPage() {
   const { data: pending, error } = await supabaseAdmin
     .from("pending_ach_setups")
@@ -47,7 +54,7 @@ export default async function AchSetupsPage() {
                     Routing number
                   </dt>
                   <dd className="font-mono text-base text-gray-900">
-                    {p.routing_number}
+                    {masked(p.routing_number)}
                   </dd>
                 </div>
                 <div>
@@ -55,7 +62,7 @@ export default async function AchSetupsPage() {
                     Account number
                   </dt>
                   <dd className="font-mono text-base text-gray-900">
-                    {p.account_number}
+                    {masked(p.account_number)}
                   </dd>
                 </div>
               </dl>
