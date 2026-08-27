@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { PageHeader, Card, Empty, ErrorNote } from "@/app/_components/ui";
 import SettleButton from "./SettleButton";
 import SendBillsButton from "./SendBillsButton";
+import AchTestButton from "./AchTestButton";
 
 export const dynamic = "force-dynamic";
 
@@ -93,7 +94,12 @@ export default async function BillingPage({ searchParams }) {
       <PageHeader
         title="Billing"
         subtitle="What each customer owes for the month, and whether their payment (ACH or Venmo) has settled."
-        action={<SendBillsButton />}
+        action={
+          <div className="flex items-start gap-3">
+            <AchTestButton />
+            <SendBillsButton />
+          </div>
+        }
       />
       <div className="mb-4 flex items-center gap-4 text-sm font-medium">
         <Link
