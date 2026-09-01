@@ -10,6 +10,20 @@ import { uploadAchFile } from "@/lib/bocBank";
 // ACH_TEST_ACCOUNT — never a real customer's bank details. Wiring the real
 // entries to the monthly invoice totals comes after this round trip works.
 
+// Local date parts, matching what the NACHA generator writes into the file.
+// toISOString() would report a UTC date that disagrees with the file near
+// midnight Central.
+const localDate = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate()
+  ).padStart(2, "0")}`;
+
+const localStamp = (d) =>
+  localDate(d).replace(/-/g, "") +
+  String(d.getHours()).padStart(2, "0") +
+  String(d.getMinutes()).padStart(2, "0") +
+  String(d.getSeconds()).padStart(2, "0");
+
 // Next weekday. The full federal-holiday calendar comes with the real wiring;
 // for a dev-server test the bank only needs a plausible effective date.
 function nextWeekday(from) {
@@ -87,15 +101,14 @@ export async function POST(request) {
   }
 
   // File name doubles as the bank's duplicate key, so include the clock time.
-  const stamp = today.toISOString().replace(/[-:T]/g, "").slice(0, 14);
-  const fileName = `pawpatrol_test_${stamp}.ach`;
+  const fileName = `pawpatrol_test_${localStamp(today)}.ach`;
 
   try {
     const bank = await uploadAchFile(nacha.content, fileName);
     return NextResponse.json({
       ok: true,
       fileName,
-      effectiveDate: effectiveDate.toISOString().slice(0, 10),
+      effectiveDate: localDate(effectiveDate),
       entryCount: nacha.entryCount,
       totalDebitCents: nacha.totalDebitCents,
       bank,
