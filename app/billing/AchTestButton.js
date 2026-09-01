@@ -41,7 +41,7 @@ export default function AchTestButton() {
 
       {result ? (
         <p className="text-right text-xs text-gray-600">
-          Uploaded {result.fileName} — fileId {result.bank?.fileId ?? "?"},{" "}
+          Uploaded {result.fileName} — fileId {result.bank?.file_id ?? "?"},{" "}
           {result.bank?.status ?? "no status"}, effective {result.effectiveDate}.
         </p>
       ) : null}
