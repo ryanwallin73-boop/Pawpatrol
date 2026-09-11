@@ -10,7 +10,7 @@ export async function POST(request) {
     end_date,
     van_id,
     notes,
-    nightly_rate,
+    discount_per_night,
   } = await request.json();
 
   if (!dog_id || !service_id || !service_date) {
@@ -55,17 +55,26 @@ export async function POST(request) {
       (new Date(end_date + "T00:00:00Z") - new Date(service_date + "T00:00:00Z")) /
         86400000
     );
-    // A nightly rate typed on the form overrides the service price for this stay.
+    // A discount typed on the form comes off each night of this stay.
     let nightlyCents = service.price_cents;
-    if (nightly_rate !== "" && nightly_rate != null) {
-      const rate = Number(nightly_rate);
-      if (!Number.isFinite(rate) || rate < 0) {
+    if (discount_per_night !== "" && discount_per_night != null) {
+      const off = Number(discount_per_night);
+      if (!Number.isFinite(off) || off < 0) {
         return NextResponse.json(
-          { error: "The nightly rate must be a dollar amount." },
+          { error: "The discount must be a dollar amount." },
           { status: 400 }
         );
       }
-      nightlyCents = Math.round(rate * 100);
+      const offCents = Math.round(off * 100);
+      if (nightlyCents != null) {
+        if (offCents > nightlyCents) {
+          return NextResponse.json(
+            { error: "The discount is more than the nightly price." },
+            { status: 400 }
+          );
+        }
+        nightlyCents -= offCents;
+      }
     }
     priceCents = nightlyCents == null ? null : nightlyCents * nights;
   }

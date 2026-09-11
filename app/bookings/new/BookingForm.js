@@ -26,7 +26,7 @@ export default function BookingForm({ dogs, services, vans }) {
     service_date: today,
     end_date: "",
     van_id: "",
-    nightly_rate: "",
+    discount_per_night: "",
     notes: "",
   });
   const [error, setError] = useState(null);
@@ -45,11 +45,18 @@ export default function BookingForm({ dogs, services, vans }) {
     d.setUTCDate(d.getUTCDate() + n);
     return d.toISOString().slice(0, 10);
   };
-  // A blank rate keeps the service price; otherwise the typed rate wins.
+  // Dollars off each night, taken off the service's nightly price.
+  const baseCents = selectedService?.price_cents;
+  const discountCents =
+    isBoarding &&
+    form.discount_per_night !== "" &&
+    Number(form.discount_per_night) >= 0
+      ? Math.round(Number(form.discount_per_night) * 100)
+      : 0;
   const nightlyCents =
-    isBoarding && form.nightly_rate !== "" && Number(form.nightly_rate) >= 0
-      ? Math.round(Number(form.nightly_rate) * 100)
-      : selectedService?.price_cents;
+    typeof baseCents === "number"
+      ? Math.max(baseCents - discountCents, 0)
+      : baseCents;
 
   const nights =
     isBoarding && form.end_date > form.service_date
@@ -71,7 +78,7 @@ export default function BookingForm({ dogs, services, vans }) {
       body: JSON.stringify({
         ...form,
         end_date: isBoarding ? form.end_date : "",
-        nightly_rate: isBoarding ? form.nightly_rate : "",
+        discount_per_night: isBoarding ? form.discount_per_night : "",
       }),
     });
 
@@ -104,7 +111,7 @@ export default function BookingForm({ dogs, services, vans }) {
           <button
             onClick={() => {
               setDone(false);
-              setForm({ ...form, dog_id: "", notes: "", nightly_rate: "" });
+              setForm({ ...form, dog_id: "", notes: "", discount_per_night: "" });
             }}
             className="font-medium text-[#2C7A7B] hover:underline"
           >
@@ -180,20 +187,23 @@ export default function BookingForm({ dogs, services, vans }) {
               />
             </div>
             <div>
-              <label className={label}>Discounted nightly rate (optional)</label>
+              <label className={label}>Discount per night (optional)</label>
               <input
                 className={field}
                 type="number"
                 min="0"
                 step="0.01"
-                placeholder={money(selectedService?.price_cents)}
-                value={form.nightly_rate}
-                onChange={set("nightly_rate")}
+                placeholder="0.00"
+                value={form.discount_per_night}
+                onChange={set("discount_per_night")}
               />
               {nights > 0 && typeof nightlyCents === "number" ? (
                 <p className="mt-1 text-sm text-gray-500">
-                  {nights} night{nights === 1 ? "" : "s"} × {money(nightlyCents)} ={" "}
-                  {money(nights * nightlyCents)}
+                  {nights} night{nights === 1 ? "" : "s"} ×{" "}
+                  {discountCents > 0
+                    ? `(${money(baseCents)} − ${money(discountCents)})`
+                    : money(nightlyCents)}{" "}
+                  = {money(nights * nightlyCents)}
                 </p>
               ) : null}
             </div>
