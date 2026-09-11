@@ -6,15 +6,10 @@ import {
   ErrorNote,
   NewBookingButton,
 } from "@/app/_components/ui";
-import StatusSelect from "./StatusSelect";
+import StatusButtons from "./StatusButtons";
 import DateNav from "./DateNav";
 
 export const dynamic = "force-dynamic";
-
-const fmtTime = (ts) =>
-  ts
-    ? new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
-    : "—";
 
 export default async function TrackingPage({ searchParams }) {
   const params = await searchParams;
@@ -29,7 +24,7 @@ export default async function TrackingPage({ searchParams }) {
   const { data: bookings, error } = await supabaseAdmin
     .from("bookings")
     .select(
-      `id, status, picked_up_at, dropped_off_at,
+      `id, status,
        dogs ( name, customers ( first_name, last_name ) ),
        services ( name ),
        vans ( name )`
@@ -64,8 +59,6 @@ export default async function TrackingPage({ searchParams }) {
                 <th className="pb-2">Owner</th>
                 <th className="pb-2">Service</th>
                 <th className="pb-2">Van</th>
-                <th className="pb-2">Picked up</th>
-                <th className="pb-2">Dropped off</th>
                 <th className="pb-2">Status</th>
               </tr>
             </thead>
@@ -80,10 +73,8 @@ export default async function TrackingPage({ searchParams }) {
                   </td>
                   <td className="py-2">{b.services?.name ?? "—"}</td>
                   <td className="py-2 text-gray-600">{b.vans?.name ?? "—"}</td>
-                  <td className="py-2 text-gray-600">{fmtTime(b.picked_up_at)}</td>
-                  <td className="py-2 text-gray-600">{fmtTime(b.dropped_off_at)}</td>
                   <td className="py-2">
-                    <StatusSelect id={b.id} status={b.status} />
+                    <StatusButtons id={b.id} status={b.status} />
                   </td>
                 </tr>
               ))}
