@@ -26,6 +26,7 @@ export default function BookingForm({ dogs, services, vans }) {
     service_date: today,
     end_date: "",
     van_id: "",
+    nightly_rate: "",
     notes: "",
   });
   const [error, setError] = useState(null);
@@ -44,6 +45,12 @@ export default function BookingForm({ dogs, services, vans }) {
     d.setUTCDate(d.getUTCDate() + n);
     return d.toISOString().slice(0, 10);
   };
+  // A blank rate keeps the service price; otherwise the typed rate wins.
+  const nightlyCents =
+    isBoarding && form.nightly_rate !== "" && Number(form.nightly_rate) >= 0
+      ? Math.round(Number(form.nightly_rate) * 100)
+      : selectedService?.price_cents;
+
   const nights =
     isBoarding && form.end_date > form.service_date
       ? Math.round(
@@ -61,7 +68,11 @@ export default function BookingForm({ dogs, services, vans }) {
     const res = await fetch("/api/bookings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, end_date: isBoarding ? form.end_date : "" }),
+      body: JSON.stringify({
+        ...form,
+        end_date: isBoarding ? form.end_date : "",
+        nightly_rate: isBoarding ? form.nightly_rate : "",
+      }),
     });
 
     if (!res.ok) {
@@ -93,7 +104,7 @@ export default function BookingForm({ dogs, services, vans }) {
           <button
             onClick={() => {
               setDone(false);
-              setForm({ ...form, dog_id: "", notes: "" });
+              setForm({ ...form, dog_id: "", notes: "", nightly_rate: "" });
             }}
             className="font-medium text-[#2C7A7B] hover:underline"
           >
@@ -156,24 +167,37 @@ export default function BookingForm({ dogs, services, vans }) {
           />
         </div>
         {isBoarding ? (
-          <div>
-            <label className={label}>Check-out date</label>
-            <input
-              className={field}
-              type="date"
-              required
-              min={addDays(form.service_date, 1)}
-              value={form.end_date}
-              onChange={set("end_date")}
-            />
-            {nights > 0 && typeof selectedService?.price_cents === "number" ? (
-              <p className="mt-1 text-sm text-gray-500">
-                {nights} night{nights === 1 ? "" : "s"} ×{" "}
-                {money(selectedService.price_cents)} ={" "}
-                {money(nights * selectedService.price_cents)}
-              </p>
-            ) : null}
-          </div>
+          <>
+            <div>
+              <label className={label}>Check-out date</label>
+              <input
+                className={field}
+                type="date"
+                required
+                min={addDays(form.service_date, 1)}
+                value={form.end_date}
+                onChange={set("end_date")}
+              />
+            </div>
+            <div>
+              <label className={label}>Discounted nightly rate (optional)</label>
+              <input
+                className={field}
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder={money(selectedService?.price_cents)}
+                value={form.nightly_rate}
+                onChange={set("nightly_rate")}
+              />
+              {nights > 0 && typeof nightlyCents === "number" ? (
+                <p className="mt-1 text-sm text-gray-500">
+                  {nights} night{nights === 1 ? "" : "s"} × {money(nightlyCents)} ={" "}
+                  {money(nights * nightlyCents)}
+                </p>
+              ) : null}
+            </div>
+          </>
         ) : null}
         <div>
           <label className={label}>Van (optional)</label>

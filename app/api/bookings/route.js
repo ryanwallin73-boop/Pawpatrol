@@ -3,8 +3,15 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { findVacation } from "@/lib/vacations";
 
 export async function POST(request) {
-  const { dog_id, service_id, service_date, end_date, van_id, notes } =
-    await request.json();
+  const {
+    dog_id,
+    service_id,
+    service_date,
+    end_date,
+    van_id,
+    notes,
+    nightly_rate,
+  } = await request.json();
 
   if (!dog_id || !service_id || !service_date) {
     return NextResponse.json(
@@ -48,7 +55,19 @@ export async function POST(request) {
       (new Date(end_date + "T00:00:00Z") - new Date(service_date + "T00:00:00Z")) /
         86400000
     );
-    priceCents = service.price_cents == null ? null : service.price_cents * nights;
+    // A nightly rate typed on the form overrides the service price for this stay.
+    let nightlyCents = service.price_cents;
+    if (nightly_rate !== "" && nightly_rate != null) {
+      const rate = Number(nightly_rate);
+      if (!Number.isFinite(rate) || rate < 0) {
+        return NextResponse.json(
+          { error: "The nightly rate must be a dollar amount." },
+          { status: 400 }
+        );
+      }
+      nightlyCents = Math.round(rate * 100);
+    }
+    priceCents = nightlyCents == null ? null : nightlyCents * nights;
   }
 
   const row = {
