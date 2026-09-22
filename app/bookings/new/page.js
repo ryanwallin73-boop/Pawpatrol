@@ -4,7 +4,8 @@ import BookingForm from "./BookingForm";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewBookingPage() {
+export default async function NewBookingPage({ searchParams }) {
+  const { dog } = await searchParams;
   const [dogsRes, servicesRes, vansRes] = await Promise.all([
     supabaseAdmin
       .from("dogs")
@@ -35,6 +36,7 @@ export default async function NewBookingPage() {
           dogs={dogsRes.data}
           services={servicesRes.data}
           vans={vansRes.data}
+          initialDogId={dogsRes.data.some((d) => d.id === dog) ? dog : ""}
         />
       )}
     </div>

@@ -5,6 +5,7 @@ import {
   Empty,
   ErrorNote,
   NewBookingButton,
+  HistoryLink,
 } from "@/app/_components/ui";
 import StatusButtons from "./StatusButtons";
 import DateNav from "./DateNav";
@@ -25,7 +26,7 @@ export default async function TrackingPage({ searchParams }) {
     .from("bookings")
     .select(
       `id, status,
-       dogs ( name, customers ( first_name, last_name ) ),
+       dogs ( id, name, customers ( id, first_name, last_name ) ),
        services ( name ),
        vans ( name )`
     )
@@ -65,11 +66,17 @@ export default async function TrackingPage({ searchParams }) {
             <tbody className="divide-y divide-gray-100">
               {bookings.map((b) => (
                 <tr key={b.id}>
-                  <td className="py-2 font-medium">{b.dogs?.name ?? "—"}</td>
+                  <td className="py-2 font-medium">
+                    <HistoryLink dog={b.dogs} date={date} withDog>
+                      {b.dogs?.name ?? "—"}
+                    </HistoryLink>
+                  </td>
                   <td className="py-2 text-gray-600">
-                    {b.dogs?.customers
-                      ? `${b.dogs.customers.first_name} ${b.dogs.customers.last_name}`
-                      : "—"}
+                    <HistoryLink dog={b.dogs} date={date}>
+                      {b.dogs?.customers
+                        ? `${b.dogs.customers.first_name} ${b.dogs.customers.last_name}`
+                        : "—"}
+                    </HistoryLink>
                   </td>
                   <td className="py-2">{b.services?.name ?? "—"}</td>
                   <td className="py-2 text-gray-600">{b.vans?.name ?? "—"}</td>

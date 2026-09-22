@@ -22,6 +22,23 @@ export function AddCustomerButton() {
   );
 }
 
+// Links a dog's (or, without withDog, its owner's) name to the owner's
+// monthly history, opened on the month of `date`.
+export function HistoryLink({ dog, date, withDog, children }) {
+  const customerId = dog?.customers?.id;
+  if (!customerId) return children;
+  return (
+    <Link
+      href={`/customers/${customerId}/history?month=${date.slice(0, 7)}${
+        withDog ? `&dog=${dog.id}` : ""
+      }`}
+      className="hover:text-[#2C7A7B] hover:underline"
+    >
+      {children}
+    </Link>
+  );
+}
+
 export function PageHeader({ title, subtitle, action }) {
   return (
     <div className="mb-6 flex items-start justify-between gap-4">

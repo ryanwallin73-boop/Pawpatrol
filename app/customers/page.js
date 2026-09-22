@@ -41,7 +41,9 @@ export default async function CustomersPage() {
             <Card key={c.id}>
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  {c.first_name} {c.last_name}
+                  <Link href={`/customers/${c.id}/history`} className="hover:text-[#2C7A7B] hover:underline">
+                    {c.first_name} {c.last_name}
+                  </Link>
                 </h3>
                 <span className="text-sm text-gray-500">
                   {c.neighborhoods?.name ?? "No neighborhood"}
@@ -68,7 +70,9 @@ export default async function CustomersPage() {
                     <ul className="mt-1 space-y-1 text-sm">
                       {c.dogs.map((d) => (
                         <li key={d.id} className="text-gray-700">
-                          {d.name}
+                          <Link href={`/customers/${c.id}/history?dog=${d.id}`} className="hover:text-[#2C7A7B] hover:underline">
+                            {d.name}
+                          </Link>
                           {d.breed ? (
                             <span className="text-gray-400"> · {d.breed}</span>
                           ) : null}

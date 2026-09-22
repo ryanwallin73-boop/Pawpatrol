@@ -6,6 +6,7 @@ import {
   ErrorNote,
   Badge,
   NewBookingButton,
+  HistoryLink,
 } from "@/app/_components/ui";
 import BookingActions from "./BookingActions";
 
@@ -22,7 +23,7 @@ export default async function SchedulesPage() {
       .from("bookings")
       .select(
         `id, service_date, end_date, status,
-         dogs ( name, customers ( first_name, last_name ) ),
+         dogs ( id, name, customers ( id, first_name, last_name ) ),
          services ( name ),
          vans ( name )`
       )
@@ -77,8 +78,16 @@ export default async function SchedulesPage() {
                         {b.service_date}
                         {b.end_date ? ` – ${b.end_date}` : ""}
                       </td>
-                      <td className="py-2">{b.dogs?.name ?? "—"}</td>
-                      <td className="py-2 text-gray-600">{dogOwner(b.dogs)}</td>
+                      <td className="py-2">
+                        <HistoryLink dog={b.dogs} date={b.service_date} withDog>
+                          {b.dogs?.name ?? "—"}
+                        </HistoryLink>
+                      </td>
+                      <td className="py-2 text-gray-600">
+                        <HistoryLink dog={b.dogs} date={b.service_date}>
+                          {dogOwner(b.dogs)}
+                        </HistoryLink>
+                      </td>
                       <td className="py-2">{b.services?.name ?? "—"}</td>
                       <td className="py-2 text-gray-600">{b.vans?.name ?? "—"}</td>
                       <td className="py-2">

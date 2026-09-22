@@ -16,12 +16,12 @@ const ownerName = (dog) =>
     ? `${dog.customers.first_name} ${dog.customers.last_name}`
     : "Unknown owner";
 
-export default function BookingForm({ dogs, services, vans }) {
+export default function BookingForm({ dogs, services, vans, initialDogId }) {
   const router = useRouter();
   const today = new Date().toISOString().slice(0, 10);
 
   const [form, setForm] = useState({
-    dog_id: "",
+    dog_id: initialDogId,
     service_id: "",
     service_date: today,
     end_date: "",
