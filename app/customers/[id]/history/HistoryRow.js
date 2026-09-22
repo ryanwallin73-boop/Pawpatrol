@@ -18,6 +18,7 @@ export default function HistoryRow({ booking: b, locked }) {
   const [loading, setLoading] = useState(false);
   const isBoarding = !!b.end_date;
   const canceled = b.status === "canceled";
+  const completed = ["completed", "dropped_off"].includes(b.status);
 
   async function send(url, body) {
     setLoading(true);
@@ -114,6 +115,17 @@ export default function HistoryRow({ booking: b, locked }) {
             >
               {isBoarding ? "Change days" : "Change date"}
             </button>
+            {!canceled && !completed ? (
+              <button
+                onClick={() =>
+                  send(`/api/bookings/${b.id}/status`, { status: "completed" })
+                }
+                disabled={loading}
+                className="text-sm font-medium text-emerald-700 hover:underline disabled:opacity-60"
+              >
+                Complete
+              </button>
+            ) : null}
             <button
               onClick={toggleCancel}
               disabled={loading}

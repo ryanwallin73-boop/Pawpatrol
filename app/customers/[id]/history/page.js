@@ -101,7 +101,7 @@ export default async function CustomerHistoryPage({ params, searchParams }) {
         subtitle={
           selectedDog
             ? `${customer.first_name} ${customer.last_name}`
-            : "Bookings by month. Change dates or cancel a day below."
+            : "Bookings by month. Change dates, mark days completed, or cancel below."
         }
         action={
           <span className="flex items-center gap-4">
