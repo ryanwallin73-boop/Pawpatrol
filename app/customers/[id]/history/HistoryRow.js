@@ -10,7 +10,7 @@ const input =
 const money = (cents) =>
   typeof cents === "number" ? `$${(cents / 100).toFixed(2)}` : "—";
 
-export default function HistoryRow({ booking: b }) {
+export default function HistoryRow({ booking: b, locked }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [start, setStart] = useState(b.service_date);
@@ -76,7 +76,16 @@ export default function HistoryRow({ booking: b }) {
         <Badge status={b.status} />
       </td>
       <td className="py-2">
-        {editing ? (
+        {locked ? (
+          <span className="text-sm text-gray-400">
+            Invoiced{" "}
+            {new Intl.DateTimeFormat("en-US", {
+              month: "short",
+              day: "numeric",
+              timeZone: "America/Chicago",
+            }).format(new Date(b.invoiced_at))}
+          </span>
+        ) : editing ? (
           <span className="flex items-center gap-3">
             <button
               onClick={save}

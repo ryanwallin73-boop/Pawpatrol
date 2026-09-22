@@ -12,7 +12,7 @@ export default function SendBillsButton() {
   async function send(test) {
     if (!test) {
       const ok = window.confirm(
-        "Send this month's invoice + next month's schedule email to EVERY customer now? This delivers real emails and can't be undone."
+        "Send last month's invoice + this month's schedule email to EVERY customer now? This delivers real emails and can't be undone."
       );
       if (!ok) return;
     }
@@ -68,7 +68,7 @@ export default function SendBillsButton() {
           {result.generated?.created
             ? `; generated ${result.generated.created} booking${
                 result.generated.created === 1 ? "" : "s"
-              } for next month`
+              } for this month`
             : ""}
           {result.failures?.length
             ? `; ${result.failures.length} failed`

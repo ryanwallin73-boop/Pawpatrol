@@ -68,7 +68,7 @@ export default async function CustomerHistoryPage({ params, searchParams }) {
       : await supabaseAdmin
           .from("bookings")
           .select(
-            `id, service_date, end_date, status, price_cents, notes,
+            `id, service_date, end_date, status, price_cents, notes, invoiced_at,
              dogs ( name ),
              services ( name )`
           )
@@ -180,7 +180,7 @@ export default async function CustomerHistoryPage({ params, searchParams }) {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {bookings.map((b) => (
-                    <HistoryRow key={b.id} booking={b} />
+                    <HistoryRow key={b.id} booking={b} locked={!!b.invoiced_at} />
                   ))}
                 </tbody>
               </table>

@@ -30,6 +30,8 @@ export default function StatusButtons({ id, status }) {
       router.refresh();
     } else {
       setValue(prev); // revert on failure
+      const { error } = await res.json().catch(() => ({}));
+      alert(error || "Couldn't update the status.");
     }
   }
 

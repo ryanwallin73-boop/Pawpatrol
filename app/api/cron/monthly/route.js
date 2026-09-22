@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { runMonthlyBilling, todayCentral, addDays } from "@/lib/monthlyBilling";
+import { runMonthlyBilling, todayCentral } from "@/lib/monthlyBilling";
 
 // Email sending can take a while with many customers.
 export const maxDuration = 300;
@@ -21,14 +21,14 @@ export async function GET(request) {
 
   const today = todayCentral();
 
-  // Automatic runs fire only on the last day of the month, and never for a
-  // month we're sending manually. Test runs bypass both checks.
+  // Automatic runs fire only on the 1st of the month (after the last day's
+  // visits are entered), and never for a month we're sending manually. Test
+  // runs bypass both checks.
   if (!test) {
-    const tomorrow = addDays(today, 1);
-    if (!tomorrow.endsWith("-01")) {
+    if (!today.endsWith("-01")) {
       return NextResponse.json({
         ok: true,
-        skipped: "not the last day of the month",
+        skipped: "not the 1st of the month",
       });
     }
     if (SKIP_AUTO_MONTHS.includes(today.slice(0, 7))) {

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { findVacation } from "@/lib/vacations";
+import { invoiceLockFor } from "@/lib/invoiceLock";
 
 export async function PATCH(request, { params }) {
   const { id } = await params;
@@ -8,6 +9,11 @@ export async function PATCH(request, { params }) {
 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(service_date ?? "")) {
     return NextResponse.json({ error: "Invalid date." }, { status: 400 });
+  }
+
+  const lock = await invoiceLockFor(id);
+  if (lock) {
+    return NextResponse.json({ error: lock.error }, { status: lock.status });
   }
 
   const { data: booking, error: lookupError } = await supabaseAdmin
@@ -72,6 +78,11 @@ export async function PATCH(request, { params }) {
 
 export async function DELETE(_request, { params }) {
   const { id } = await params;
+
+  const lock = await invoiceLockFor(id);
+  if (lock) {
+    return NextResponse.json({ error: lock.error }, { status: lock.status });
+  }
 
   await supabaseAdmin.from("route_stops").delete().eq("booking_id", id);
 

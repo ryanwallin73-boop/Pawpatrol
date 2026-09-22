@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { invoiceLockFor } from "@/lib/invoiceLock";
 
 const ALLOWED = [
   "scheduled",
@@ -18,6 +19,11 @@ export async function POST(request, { params }) {
 
   if (!ALLOWED.includes(status)) {
     return NextResponse.json({ error: "Invalid status." }, { status: 400 });
+  }
+
+  const lock = await invoiceLockFor(id);
+  if (lock) {
+    return NextResponse.json({ error: lock.error }, { status: lock.status });
   }
 
   // Fetch current timestamps so we only stamp them once.
