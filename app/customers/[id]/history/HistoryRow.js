@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/app/_components/ui";
+import StatusButtons from "@/app/tracking/StatusButtons";
 
 const input =
   "rounded-lg border border-gray-300 bg-white px-2 py-1 text-sm outline-none focus:border-[#2C7A7B] focus:ring-1 focus:ring-[#2C7A7B] disabled:opacity-60";
@@ -18,7 +19,6 @@ export default function HistoryRow({ booking: b, locked }) {
   const [loading, setLoading] = useState(false);
   const isBoarding = !!b.end_date;
   const canceled = b.status === "canceled";
-  const completed = ["completed", "dropped_off"].includes(b.status);
 
   async function send(url, body) {
     setLoading(true);
@@ -43,12 +43,9 @@ export default function HistoryRow({ booking: b, locked }) {
       ...(isBoarding ? { end_date: end } : {}),
     });
 
-  function toggleCancel() {
-    if (!canceled && !confirm("Cancel this booking?")) return;
-    send(`/api/bookings/${b.id}/status`, {
-      status: canceled ? "scheduled" : "canceled",
-    });
-  }
+  // Put a canceled booking back on the schedule.
+  const restore = () =>
+    send(`/api/bookings/${b.id}/status`, { status: "scheduled" });
 
   return (
     <tr className={canceled ? "text-gray-400" : ""}>
@@ -108,33 +105,23 @@ export default function HistoryRow({ booking: b, locked }) {
             </button>
           </span>
         ) : (
-          <span className="flex items-center gap-3">
+          <span className="flex flex-wrap items-center gap-3">
+            <StatusButtons key={b.status} id={b.id} status={b.status} />
             <button
               onClick={() => setEditing(true)}
               className="text-sm font-medium text-[#2C7A7B] hover:underline"
             >
               {isBoarding ? "Change days" : "Change date"}
             </button>
-            {!canceled && !completed ? (
+            {canceled ? (
               <button
-                onClick={() =>
-                  send(`/api/bookings/${b.id}/status`, { status: "completed" })
-                }
+                onClick={restore}
                 disabled={loading}
-                className="text-sm font-medium text-emerald-700 hover:underline disabled:opacity-60"
+                className="text-sm font-medium text-[#2C7A7B] hover:underline disabled:opacity-60"
               >
-                Complete
+                Restore
               </button>
             ) : null}
-            <button
-              onClick={toggleCancel}
-              disabled={loading}
-              className={`text-sm font-medium hover:underline disabled:opacity-60 ${
-                canceled ? "text-[#2C7A7B]" : "text-red-600"
-              }`}
-            >
-              {canceled ? "Restore" : "Cancel"}
-            </button>
           </span>
         )}
       </td>
