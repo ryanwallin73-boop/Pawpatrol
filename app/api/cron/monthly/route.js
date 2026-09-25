@@ -40,6 +40,13 @@ export async function GET(request) {
   }
 
   const result = await runMonthlyBilling({ test });
+  if (result.alreadySent) {
+    return NextResponse.json({
+      ok: true,
+      skipped: "already sent this month",
+      sentAt: result.alreadySent.sentAt,
+    });
+  }
   if (result.error) {
     return NextResponse.json({ error: result.error }, { status: 500 });
   }
