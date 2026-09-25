@@ -17,7 +17,7 @@ export default async function AchSetupsPage() {
     .select(
       `id, account_number, routing_number, created_at,
        customers ( first_name, last_name ),
-       payment_methods ( bank_name, account_type )`
+       payment_methods ( bank_name, account_type, account_last4, routing_last4 )`
     )
     .order("created_at", { ascending: true });
 
@@ -54,7 +54,7 @@ export default async function AchSetupsPage() {
                     Routing number
                   </dt>
                   <dd className="font-mono text-base text-gray-900">
-                    {masked(p.routing_number)}
+                    {masked(p.routing_number ?? p.payment_methods?.routing_last4)}
                   </dd>
                 </div>
                 <div>
@@ -62,7 +62,7 @@ export default async function AchSetupsPage() {
                     Account number
                   </dt>
                   <dd className="font-mono text-base text-gray-900">
-                    {masked(p.account_number)}
+                    {masked(p.account_number ?? p.payment_methods?.account_last4)}
                   </dd>
                 </div>
               </dl>

@@ -16,7 +16,7 @@ export default function CompleteButton({ id }) {
     });
     if (!res.ok) {
       const { error } = await res.json().catch(() => ({}));
-      setError(error || "Failed to purge. Try again.");
+      setError(error || "Failed to approve. Try again.");
       setLoading(false);
       return;
     }
@@ -30,7 +30,7 @@ export default function CompleteButton({ id }) {
         disabled={loading}
         className="rounded-lg bg-[#2C7A7B] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#256668] disabled:opacity-60"
       >
-        {loading ? "Purging…" : "Mark entered & purge numbers"}
+        {loading ? "Approving…" : "Approve for ACH"}
       </button>
       {error ? <p className="mt-2 text-sm text-red-700">{error}</p> : null}
     </div>

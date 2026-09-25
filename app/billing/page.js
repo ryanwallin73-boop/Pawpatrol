@@ -4,6 +4,8 @@ import { PageHeader, Card, Empty, ErrorNote } from "@/app/_components/ui";
 import SettleButton from "./SettleButton";
 import SendBillsButton from "./SendBillsButton";
 import AchTestButton from "./AchTestButton";
+import AchStatusButton from "./AchStatusButton";
+import AchPaymentsPanel from "./AchPaymentsPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -97,10 +99,14 @@ export default async function BillingPage({ searchParams }) {
         action={
           <div className="flex items-start gap-3">
             <AchTestButton />
+            <AchStatusButton />
             <SendBillsButton />
           </div>
         }
       />
+      <div className="mb-6">
+        <AchPaymentsPanel />
+      </div>
       <div className="mb-4 flex items-center gap-4 text-sm font-medium">
         <Link
           href={`/billing?month=${shiftMonth(month, -1)}`}
