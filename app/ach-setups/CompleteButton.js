@@ -7,20 +7,40 @@ export default function CompleteButton({ id }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [done, setDone] = useState(false);
 
   async function handleComplete() {
     setLoading(true);
     setError(null);
-    const res = await fetch(`/api/ach-setups/${id}/complete`, {
-      method: "POST",
-    });
-    if (!res.ok) {
-      const { error } = await res.json().catch(() => ({}));
-      setError(error || "Failed to approve. Try again.");
+    try {
+      const res = await fetch(`/api/ach-setups/${id}/complete`, {
+        method: "POST",
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok || !body?.ok) {
+        setError(
+          body?.error ||
+            `Failed to approve (HTTP ${res.status}${
+              res.redirected ? ", redirected — try signing in again" : ""
+            }).`
+        );
+        return;
+      }
+      setDone(true);
+      router.refresh();
+    } catch (e) {
+      setError(`Failed to approve: ${e.message || "couldn't reach the server"}.`);
+    } finally {
       setLoading(false);
-      return;
     }
-    router.refresh();
+  }
+
+  if (done) {
+    return (
+      <p className="text-sm font-medium text-green-700">
+        Approved — this customer will be included in ACH payments.
+      </p>
+    );
   }
 
   return (

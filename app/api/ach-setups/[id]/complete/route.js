@@ -42,13 +42,20 @@ export async function POST(_request, { params }) {
     return NextResponse.json({ error: pmError.message }, { status: 500 });
   }
 
-  const { error: deleteError } = await supabaseAdmin
+  const { data: deleted, error: deleteError } = await supabaseAdmin
     .from("pending_ach_setups")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   if (deleteError) {
     return NextResponse.json({ error: deleteError.message }, { status: 500 });
+  }
+  if (!deleted?.length) {
+    return NextResponse.json(
+      { error: "Approved, but couldn't remove it from this list." },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ ok: true });
