@@ -7,7 +7,7 @@ export const maxDuration = 300;
 // Months (in "YYYY-MM") to skip the automatic month-end send for — the shop is
 // sending those bills manually from the billing page instead. Automatic sends
 // resume on their own for any month not listed here.
-const SKIP_AUTO_MONTHS = ["2026-07"];
+const SKIP_AUTO_MONTHS = ["2026-07", "2026-10"];
 
 export async function GET(request) {
   const secret = process.env.CRON_SECRET;
