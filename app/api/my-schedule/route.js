@@ -30,6 +30,11 @@ export async function POST(request) {
     );
   }
 
+  const owner = booking.dogs?.customers;
+  const ownerName = owner
+    ? `${owner.first_name} ${owner.last_name}`
+    : "A customer";
+
   if (action === "cancel") {
     await supabaseAdmin.from("route_stops").delete().eq("booking_id", booking.id);
     const { error } = await supabaseAdmin
@@ -39,6 +44,24 @@ export async function POST(request) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    // Let staff know; don't fail the customer's cancel if the email can't
+    // be sent.
+    try {
+      await sendEmail({
+        to: process.env.YAHOO_USER,
+        subject: `Cancellation: ${booking.dogs?.name ?? "a dog"} on ${booking.service_date}`,
+        html: `
+          <div style="font-family:Arial,Helvetica,sans-serif;color:#333;">
+            <p>${ownerName} canceled
+               <strong>${booking.dogs?.name ?? "their dog"}</strong>'s visit on
+               <strong>${booking.service_date}</strong>.</p>
+            <p>It has been removed from its route. See
+               <a href="${siteUrl()}/tracking">Daily Tracking</a>.</p>
+          </div>`,
+      });
+    } catch {}
+
     return NextResponse.json({ ok: true });
   }
 
@@ -74,10 +97,6 @@ export async function POST(request) {
 
     // Let staff know there's a request waiting; don't fail the customer's
     // request if the notification email can't be sent.
-    const owner = booking.dogs?.customers;
-    const ownerName = owner
-      ? `${owner.first_name} ${owner.last_name}`
-      : "A customer";
     try {
       await sendEmail({
         to: process.env.YAHOO_USER,
