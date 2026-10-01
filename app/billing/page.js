@@ -47,7 +47,7 @@ export default async function BillingPage({ searchParams }) {
     supabaseAdmin
       .from("bookings")
       .select(
-        `id, price_cents,
+        `id, price_cents, trade_credit,
          dogs ( customers ( id, first_name, last_name ) )`
       )
       .gte("service_date", monthStart)
@@ -76,7 +76,7 @@ export default async function BillingPage({ searchParams }) {
       byCustomer.set(customer.id, row);
     }
     row.visits += 1;
-    row.owedCents += b.price_cents ?? 0;
+    if (!b.trade_credit) row.owedCents += b.price_cents ?? 0;
   }
 
   const rows = [...byCustomer.values()].sort((a, b) =>
