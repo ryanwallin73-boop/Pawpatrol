@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createCustomerWithAch } from "@/lib/createCustomer";
-import { ACH_CONSENT_TEXT } from "@/lib/ach";
+import { STAFF_ACH_CONSENT_TEXT } from "@/lib/ach";
 
 export async function POST(request) {
   const { customer, dogs, bank, authorized, authNote } = await request.json();
@@ -16,7 +16,7 @@ export async function POST(request) {
   }
 
   let consentText =
-    ACH_CONSENT_TEXT + " — Recorded by staff on the customer's behalf.";
+    STAFF_ACH_CONSENT_TEXT + " — Recorded by staff on the customer's behalf.";
   if (authNote?.trim()) {
     consentText += ` Authorization received: ${authNote.trim()}.`;
   }

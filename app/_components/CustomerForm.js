@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ACH_CONSENT_TEXT } from "@/lib/ach";
+import { ACH_CONSENT_TEXT, STAFF_ACH_CONSENT_TEXT } from "@/lib/ach";
 
 const MAX_DOGS = 3;
 const emptyDog = { name: "", breed: "", size: "" };
@@ -325,10 +325,7 @@ export default function CustomerForm({ variant = "public", submitUrl }) {
                 onChange={(e) => setConsent(e.target.checked)}
                 className="mt-1"
               />
-              <span>
-                I confirm the customer authorized Austin Paw Patrol to debit this
-                account via ACH (e.g., received by email or a signed form).
-              </span>
+              <span>{STAFF_ACH_CONSENT_TEXT}</span>
             </label>
             <div>
               <label className={label}>
