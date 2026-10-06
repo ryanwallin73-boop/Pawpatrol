@@ -44,6 +44,12 @@ export default async function SchedulesPage() {
 
   const error = bookings.error || vacations.error;
 
+  // Shade every other date so each day's dogs read as one group.
+  const dates = [...new Set((bookings.data ?? []).map((b) => b.service_date))];
+  const shadedRows = (bookings.data ?? []).map(
+    (b) => dates.indexOf(b.service_date) % 2 === 1
+  );
+
   return (
     <div>
       <PageHeader
@@ -72,8 +78,8 @@ export default async function SchedulesPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {bookings.data.map((b) => (
-                    <tr key={b.id}>
+                  {bookings.data.map((b, i) => (
+                    <tr key={b.id} className={shadedRows[i] ? "bg-orange-50" : ""}>
                       <td className="py-2 font-medium">
                         {b.service_date}
                         {b.end_date ? ` – ${b.end_date}` : ""}
