@@ -79,7 +79,14 @@ export default async function SchedulesPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {bookings.data.map((b, i) => (
-                    <tr key={b.id} className={shadedRows[i] ? "bg-orange-50" : ""}>
+                    <tr
+                      key={b.id}
+                      className={`${shadedRows[i] ? "bg-orange-50" : ""} ${
+                        i > 0 && b.service_date !== bookings.data[i - 1].service_date
+                          ? "border-t-2 border-t-[#B85C38]"
+                          : ""
+                      }`}
+                    >
                       <td className="py-2 font-medium">
                         {b.service_date}
                         {b.end_date ? ` – ${b.end_date}` : ""}
