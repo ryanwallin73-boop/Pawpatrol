@@ -76,7 +76,7 @@ export default function BookingActions({ id, serviceDate }) {
       <button
         onClick={handleDelete}
         disabled={loading}
-        className="text-sm font-medium text-red-600 hover:underline disabled:opacity-60"
+        className="text-sm font-medium text-[#B85C38] hover:underline disabled:opacity-60"
       >
         {loading ? "Deleting…" : "Delete"}
       </button>
