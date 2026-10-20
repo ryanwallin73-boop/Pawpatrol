@@ -2,8 +2,17 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { PageHeader, ErrorNote, Badge } from "@/app/_components/ui";
 import EditCustomerForm from "./EditCustomerForm";
 import AddAchForm from "./AddAchForm";
+import DeactivateAchButton from "./DeactivateAchButton";
 
 export const dynamic = "force-dynamic";
+
+const shortDate = (iso) =>
+  new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "America/Chicago",
+  }).format(new Date(iso));
 
 export default async function EditCustomerPage({ params }) {
   const { id } = await params;
@@ -12,7 +21,7 @@ export default async function EditCustomerPage({ params }) {
     supabaseAdmin
       .from("customers")
       .select(
-        "*, dogs ( id, name, breed, size, weight_lb, vaccination_expiry, active ), payment_methods ( id, method_type, status, account_last4, is_default )"
+        "*, dogs ( id, name, breed, size, weight_lb, vaccination_expiry, active ), payment_methods ( id, method_type, status, account_last4, is_default, revoked_at )"
       )
       .eq("id", id)
       .single(),
@@ -33,6 +42,10 @@ export default async function EditCustomerPage({ params }) {
   }
 
   const customer = customerRes.data;
+  const methods = customer.payment_methods ?? [];
+  const hasActiveAch = methods.some(
+    (p) => p.method_type === "ach" && p.status !== "revoked"
+  );
 
   return (
     <div>
@@ -45,21 +58,29 @@ export default async function EditCustomerPage({ params }) {
           customer={customer}
           neighborhoods={neighborhoodsRes.data ?? []}
         />
-        {(customer.payment_methods ?? []).length === 0 ? (
-          <AddAchForm customerId={customer.id} />
-        ) : (
+        {methods.length > 0 ? (
           <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">
-              Payment methods
-            </h2>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+                Payment methods
+              </h2>
+              {hasActiveAch ? (
+                <DeactivateAchButton customerId={customer.id} />
+              ) : null}
+            </div>
             <ul className="space-y-1 text-sm">
-              {customer.payment_methods.map((p) => (
+              {methods.map((p) => (
                 <li key={p.id} className="flex items-center gap-2 text-gray-700">
                   <span className="uppercase">{p.method_type}</span>
                   <span className="text-gray-400">
                     ••••{p.account_last4 ?? "????"}
                   </span>
                   <Badge status={p.status} />
+                  {p.revoked_at ? (
+                    <span className="text-xs text-gray-500">
+                      deactivated {shortDate(p.revoked_at)}
+                    </span>
+                  ) : null}
                   {p.is_default ? (
                     <span className="text-xs text-[#2C7A7B]">default</span>
                   ) : null}
@@ -67,7 +88,8 @@ export default async function EditCustomerPage({ params }) {
               ))}
             </ul>
           </section>
-        )}
+        ) : null}
+        {!hasActiveAch ? <AddAchForm customerId={customer.id} /> : null}
       </div>
     </div>
   );

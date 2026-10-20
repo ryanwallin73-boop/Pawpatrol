@@ -73,7 +73,7 @@ export default function AddAchForm({ customerId }) {
           ACH payment
         </h2>
         <p className="mb-4 text-sm text-gray-500">
-          No payment method on file yet.
+          No active ACH account on file.
         </p>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>

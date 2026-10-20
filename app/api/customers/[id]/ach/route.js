@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { addAchPaymentMethod } from "@/lib/createCustomer";
+import { addAchPaymentMethod, deactivateAch } from "@/lib/createCustomer";
 import { ACH_CONSENT_TEXT } from "@/lib/ach";
 
 // Adds ACH details to an existing customer who was created without them.
@@ -32,6 +32,17 @@ export async function POST(request, { params }) {
     consentText,
   });
 
+  if (result.error) {
+    return NextResponse.json({ error: result.error }, { status: result.status });
+  }
+  return NextResponse.json({ ok: true });
+}
+
+// Deactivates the customer's ACH so monthly billing stops debiting them.
+export async function DELETE(request, { params }) {
+  const { id } = await params;
+
+  const result = await deactivateAch(id);
   if (result.error) {
     return NextResponse.json({ error: result.error }, { status: result.status });
   }

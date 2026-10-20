@@ -8,7 +8,7 @@ export async function POST(_request, { params }) {
 
   const { data: pending, error: lookupError } = await supabaseAdmin
     .from("pending_ach_setups")
-    .select("payment_method_id, account_number, routing_number")
+    .select("customer_id, payment_method_id, account_number, routing_number")
     .eq("id", id)
     .single();
 
@@ -40,6 +40,18 @@ export async function POST(_request, { params }) {
     .eq("id", pending.payment_method_id);
   if (pmError) {
     return NextResponse.json({ error: pmError.message }, { status: 500 });
+  }
+
+  // This account replaces any the customer had before.
+  const { error: replaceError } = await supabaseAdmin
+    .from("payment_methods")
+    .update({ status: "revoked", is_default: false, revoked_at: new Date().toISOString() })
+    .eq("customer_id", pending.customer_id)
+    .eq("method_type", "ach")
+    .neq("id", pending.payment_method_id)
+    .neq("status", "revoked");
+  if (replaceError) {
+    return NextResponse.json({ error: replaceError.message }, { status: 500 });
   }
 
   const { data: deleted, error: deleteError } = await supabaseAdmin
