@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { PageHeader, Card, Empty, ErrorNote } from "@/app/_components/ui";
 import SettleButton from "./SettleButton";
 import SendBillsButton from "./SendBillsButton";
+import SendInvoicesButton from "./SendInvoicesButton";
 import AchTestButton from "./AchTestButton";
 import AchStatusButton from "./AchStatusButton";
 import AchPaymentsPanel from "./AchPaymentsPanel";
@@ -101,6 +102,7 @@ export default async function BillingPage({ searchParams }) {
             <AchTestButton />
             <AchStatusButton />
             <SendBillsButton />
+            <SendInvoicesButton />
           </div>
         }
       />
