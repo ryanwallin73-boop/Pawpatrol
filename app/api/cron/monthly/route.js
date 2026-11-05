@@ -1,55 +1,51 @@
 import { NextResponse } from "next/server";
-import { runMonthlyBilling, todayCentral } from "@/lib/monthlyBilling";
+import { addDays, todayCentral } from "@/lib/monthlyBilling";
+import { sendEmail, siteUrl } from "@/lib/email";
 
-// Email sending can take a while with many customers.
-export const maxDuration = 300;
+const monthName = (dateStr) =>
+  new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    timeZone: "UTC",
+  }).format(new Date(dateStr + "T00:00:00Z"));
 
-// Months (in "YYYY-MM") to skip the automatic month-end send for — the shop is
-// sending those bills manually from the billing page instead. Automatic sends
-// resume on their own for any month not listed here.
-const SKIP_AUTO_MONTHS = ["2026-07", "2026-10"];
-
+// Bills and invoices are sent by hand from the billing page. This runs daily
+// and, on the last day of the month, reminds the shop to confirm schedules and
+// send them.
 export async function GET(request) {
   const secret = process.env.CRON_SECRET;
   if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
 
-  // Test mode (?test=1): run now regardless of the date, but deliver every
-  // email to the shop's own inbox instead of customers.
+  // Test mode (?test=1): send now regardless of the date, to Katherine only.
   const test = request.nextUrl.searchParams.get("test") === "1";
 
   const today = todayCentral();
-
-  // Automatic runs fire only on the 1st of the month (after the last day's
-  // visits are entered), and never for a month we're sending manually. Test
-  // runs bypass both checks.
-  if (!test) {
-    if (!today.endsWith("-01")) {
-      return NextResponse.json({
-        ok: true,
-        skipped: "not the 1st of the month",
-      });
-    }
-    if (SKIP_AUTO_MONTHS.includes(today.slice(0, 7))) {
-      return NextResponse.json({
-        ok: true,
-        skipped: "sending manually this month",
-      });
-    }
-  }
-
-  const result = await runMonthlyBilling({ test });
-  if (result.alreadySent) {
+  if (!test && !addDays(today, 1).endsWith("-01")) {
     return NextResponse.json({
       ok: true,
-      skipped: "already sent this month",
-      sentAt: result.alreadySent.sentAt,
+      skipped: "not the last day of the month",
     });
   }
-  if (result.error) {
-    return NextResponse.json({ error: result.error }, { status: 500 });
-  }
 
-  return NextResponse.json({ ok: true, test, ...result });
+  const month = monthName(today);
+  await sendEmail({
+    to: test ? "katherine@agcenter.com" : process.env.YAHOO_USER,
+    cc: test ? undefined : "katherine@agcenter.com",
+    subject: `${test ? "[TEST] " : ""}Reminder: confirm ${month} schedules before sending invoices`,
+    html: `
+    <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#000;">
+      <p>Hi Brandy,</p>
+      <p>Today is the last day of ${month}. Please confirm all schedules have been entered for the month.</p>
+      <p>Nothing goes out automatically. When it's ready, on or after the 1st, send the invoices from the billing page:</p>
+      <p style="margin:28px 0;">
+        <a href="${siteUrl()}/billing"
+           style="display:inline-block;background:#B85C38;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:16px;">
+          Go to billing
+        </a>
+      </p>
+    </div>`,
+  });
+
+  return NextResponse.json({ ok: true, test });
 }
