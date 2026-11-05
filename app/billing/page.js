@@ -3,8 +3,6 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { PageHeader, Card, Empty, ErrorNote } from "@/app/_components/ui";
 import SettleButton from "./SettleButton";
 import SendBillsButton from "./SendBillsButton";
-import SendInvoicesButton from "./SendInvoicesButton";
-import AchTestButton from "./AchTestButton";
 import AchStatusButton from "./AchStatusButton";
 import AchPaymentsPanel from "./AchPaymentsPanel";
 
@@ -99,10 +97,8 @@ export default async function BillingPage({ searchParams }) {
         subtitle="What each customer owes for the month, and whether their payment (ACH or Venmo) has settled."
         action={
           <div className="flex items-start gap-3">
-            <AchTestButton />
             <AchStatusButton />
             <SendBillsButton />
-            <SendInvoicesButton />
           </div>
         }
       />
